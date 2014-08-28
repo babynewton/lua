@@ -23,7 +23,7 @@ int luaZ_fill (ZIO *z) {
   lua_State *L = z->L;
   const char *buff;
   lua_unlock(L);
-  buff = z->reader(L, z->data, &size);
+  buff = z->reader->read(L, &size);
   lua_lock(L);
   if (buff == NULL || size == 0)
     return EOZ;
@@ -33,10 +33,9 @@ int luaZ_fill (ZIO *z) {
 }
 
 
-void luaZ_init (lua_State *L, ZIO *z, lua_Reader reader, void *data) {
+void luaZ_init (lua_State *L, ZIO *z, lua_Reader* reader) {
   z->L = L;
   z->reader = reader;
-  z->data = data;
   z->n = 0;
   z->p = NULL;
 }

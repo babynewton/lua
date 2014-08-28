@@ -289,8 +289,12 @@ static int luaB_loadfile (lua_State *L) {
 ** stack top. Instead, it keeps its resulting string in a
 ** reserved slot inside the stack.
 */
-static const char *generic_reader (lua_State *L, void *ud, size_t *size) {
-  (void)(ud);  /* not used */
+class generic_Reader:public lua_Reader {
+ public:
+  const char* read(lua_State *L, size_t *size);
+};
+
+const char *generic_Reader::read (lua_State *L, size_t *size) {
   luaL_checkstack(L, 2, "too many nested functions");
   lua_pushvalue(L, 1);  /* get function */
   lua_call(L, 0, 1);  /* call it */
@@ -320,7 +324,8 @@ static int luaB_load (lua_State *L) {
     const char *chunkname = luaL_optstring(L, 2, "=(load)");
     luaL_checktype(L, 1, LUA_TFUNCTION);
     lua_settop(L, RESERVEDSLOT);  /* create reserved slot */
-    status = lua_load(L, generic_reader, NULL, chunkname, mode);
+    generic_Reader generic_reader;
+    status = lua_load(L, &generic_reader, chunkname, mode);
   }
   return load_aux(L, status, env);
 }

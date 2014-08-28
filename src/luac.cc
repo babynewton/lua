@@ -116,10 +116,16 @@ static int doargs(int argc, char* argv[])
 
 #define FUNCTION "(function()end)();"
 
-static const char* reader(lua_State *L, void *ud, size_t *size)
+class Reader:public lua_Reader{
+ public:
+  int i;
+  const char* read(lua_State *L, size_t *size);
+};
+
+const char* Reader::read(lua_State *L, size_t *size)
 {
  UNUSED(L);
- if ((*(int*)ud)--)
+ if (i--)
  {
   *size=sizeof(FUNCTION)-1;
   return FUNCTION;
@@ -140,13 +146,14 @@ static const Proto* combine(lua_State* L, int n)
  else
  {
   Proto* f;
-  int i=n;
-  if (lua_load(L,reader,&i,"=(" PROGNAME ")",NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
+  Reader reader;
+  reader.i=n;
+  if (lua_load(L,&reader,"=(" PROGNAME ")",NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
   f=toproto(L,-1);
-  for (i=0; i<n; i++)
+  for (reader.i=0; reader.i<n; reader.i++)
   {
-   f->p[i]=toproto(L,i-n-1);
-   if (f->p[i]->sizeupvalues>0) f->p[i]->upvalues[0].instack=0;
+   f->p[reader.i]=toproto(L,reader.i-n-1);
+   if (f->p[reader.i]->sizeupvalues>0) f->p[reader.i]->upvalues[0].instack=0;
   }
   f->sizelineinfo=0;
   return f;

@@ -559,28 +559,29 @@ LUALIB_API void luaL_unref (lua_State *L, int t, int ref) {
 ** =======================================================
 */
 
-typedef struct LoadF {
+class LoadF:public lua_Reader {
+ public:
   int n;  /* number of pre-read characters */
   FILE *f;  /* file being read */
   char buff[LUAL_BUFFERSIZE];  /* area for reading file */
-} LoadF;
+  const char *read(lua_State *L, size_t *size);
+};
 
 
-static const char *getF (lua_State *L, void *ud, size_t *size) {
-  LoadF *lf = (LoadF *)ud;
+const char *LoadF::read (lua_State *L, size_t *size) {
   (void)L;  /* not used */
-  if (lf->n > 0) {  /* are there pre-read characters to be read? */
-    *size = lf->n;  /* return them (chars already in buffer) */
-    lf->n = 0;  /* no more pre-read characters */
+  if (n > 0) {  /* are there pre-read characters to be read? */
+    *size = n;  /* return them (chars already in buffer) */
+    n = 0;  /* no more pre-read characters */
   }
   else {  /* read a block from file */
     /* 'fread' can return > 0 *and* set the EOF flag. If next call to
        'getF' called 'fread', it might still wait for user input.
        The next check avoids this problem. */
-    if (feof(lf->f)) return NULL;
-    *size = fread(lf->buff, 1, sizeof(lf->buff), lf->f);  /* read block */
+    if (feof(f)) return NULL;
+    *size = fread(buff, 1, sizeof(buff), f);  /* read block */
   }
-  return lf->buff;
+  return buff;
 }
 
 
@@ -651,7 +652,7 @@ LUALIB_API int luaL_loadfilex (lua_State *L, const char *filename,
   }
   if (c != EOF)
     lf.buff[lf.n++] = c;  /* 'c' is the first character of the stream */
-  status = lua_load(L, getF, &lf, lua_tostring(L, -1), mode);
+  status = lua_load(L, &lf, lua_tostring(L, -1), mode);
   readstatus = ferror(lf.f);
   if (filename) fclose(lf.f);  /* close file (even in case of errors) */
   if (readstatus) {
@@ -663,19 +664,20 @@ LUALIB_API int luaL_loadfilex (lua_State *L, const char *filename,
 }
 
 
-typedef struct LoadS {
+class LoadS:public lua_Reader {
+ public:
   const char *s;
   size_t size;
-} LoadS;
+  const char *read (lua_State *L, size_t *size);
+};
 
 
-static const char *getS (lua_State *L, void *ud, size_t *size) {
-  LoadS *ls = (LoadS *)ud;
+const char *LoadS::read (lua_State *L, size_t *strsize) {
   (void)L;  /* not used */
-  if (ls->size == 0) return NULL;
-  *size = ls->size;
-  ls->size = 0;
-  return ls->s;
+  if (size == 0) return NULL;
+  *strsize = size;
+  size = 0;
+  return s;
 }
 
 
@@ -684,7 +686,7 @@ LUALIB_API int luaL_loadbufferx (lua_State *L, const char *buff, size_t size,
   LoadS ls;
   ls.s = buff;
   ls.size = size;
-  return lua_load(L, getS, &ls, name, mode);
+  return lua_load(L, &ls, name, mode);
 }
 
 

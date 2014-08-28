@@ -59,7 +59,11 @@ typedef int (*lua_CFunction) (lua_State *L);
 /*
 ** functions that read/write blocks when loading/dumping Lua chunks
 */
-typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
+//typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
+class lua_Reader{
+  public:
+    virtual const char* read(lua_State *L, size_t *sz) = 0;
+};
 
 typedef int (*lua_Writer) (lua_State *L, const void* p, size_t sz, void* ud);
 
@@ -258,7 +262,7 @@ LUA_API int   (lua_pcallk) (lua_State *L, int nargs, int nresults, int errfunc,
                             int ctx, lua_CFunction k);
 #define lua_pcall(L,n,r,f)	lua_pcallk(L, (n), (r), (f), 0, NULL)
 
-LUA_API int   (lua_load) (lua_State *L, lua_Reader reader, void *dt,
+LUA_API int   (lua_load) (lua_State *L, lua_Reader* reader,
                                         const char *chunkname,
                                         const char *mode);
 
