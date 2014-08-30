@@ -15,49 +15,46 @@
 
 #define EOZ	(-1)			/* end of stream */
 
-typedef struct Zio ZIO;
-
-#define zgetc(z)  (((z)->n--)>0 ?  cast_uchar(*(z)->p++) : luaZ_fill(z))
-
 
 typedef struct Mbuffer {
-  char *buffer;
-  size_t n;
-  size_t buffsize;
+ private:
+  char *m_buffer;
+  size_t m_n;
+  size_t m_buffsize;
+ public:
+  Mbuffer():m_buffer(NULL), m_buffsize(0) {}
+  inline char *buffer(void) { return m_buffer; }
+  inline size_t size(void){ return m_buffsize; }
+  inline size_t bufflen(void) { return m_n; }
+  inline void reset(void) { m_n = 0; }
+  inline void resize(lua_State *L, size_t size);
+  inline void free(lua_State *L) { resize(L, 0); }
+  inline void add(char c) { m_buffer[m_n++] = c; }
 } Mbuffer;
 
-#define luaZ_initbuffer(L, buff) ((buff)->buffer = NULL, (buff)->buffsize = 0)
-
-#define luaZ_buffer(buff)	((buff)->buffer)
-#define luaZ_sizebuffer(buff)	((buff)->buffsize)
-#define luaZ_bufflen(buff)	((buff)->n)
-
-#define luaZ_resetbuffer(buff) ((buff)->n = 0)
-
-
-#define luaZ_resizebuffer(L, buff, size) \
-	(luaM_reallocvector(L, (buff)->buffer, (buff)->buffsize, size, char), \
-	(buff)->buffsize = size)
-
-#define luaZ_freebuffer(L, buff)	luaZ_resizebuffer(L, buff, 0)
-
+void Mbuffer::resize(lua_State *L, size_t size) {
+  luaM_reallocvector(L, m_buffer, m_buffsize, size, char);
+  m_buffsize = size;
+}
 
 LUAI_FUNC char *luaZ_openspace (lua_State *L, Mbuffer *buff, size_t n);
-LUAI_FUNC void luaZ_init (lua_State *L, ZIO *z, lua_Reader *reader);
-LUAI_FUNC size_t luaZ_read (ZIO* z, void* b, size_t n);	/* read next n bytes */
 
 
 
 /* --------- Private Part ------------------ */
 
-struct Zio {
-  size_t n;			/* bytes still unread */
-  const char *p;		/* current position in buffer */
-  lua_Reader* reader;		/* reader function */
-  lua_State *L;			/* Lua state (for reader) */
+class ZIO {
+ private:
+  size_t m_n;			/* bytes still unread */
+  const char *m_p;		/* current position in buffer */
+  lua_Reader* m_reader;		/* reader function */
+  lua_State *m_L;			/* Lua state (for reader) */
+  int fill(void);
+ public:
+  ZIO(lua_State *L, lua_Reader *reader):m_n(0), m_p(NULL), m_reader(reader), m_L(L) {}
+  size_t read(void* b, size_t n);
+  inline int getc(void) { return (m_n--)>0 ?  cast_uchar(*m_p++) : fill(); }
 };
 
-
-LUAI_FUNC int luaZ_fill (ZIO *z);
 
 #endif

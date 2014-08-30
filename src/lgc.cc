@@ -781,7 +781,7 @@ static void checkSizes (lua_State *L) {
     int hs = g->strt.size / 2;  /* half the size of the string table */
     if (g->strt.nuse < cast(lu_int32, hs))  /* using less than that half? */
       luaS_resize(L, hs);  /* halve its size */
-    luaZ_freebuffer(L, &g->buff);  /* free concatenation buffer */
+    g->buff.free(L);  /* free concatenation buffer */
   }
 }
 

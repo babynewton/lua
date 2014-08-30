@@ -44,7 +44,7 @@ static l_noret error(LoadState* S, const char* why)
 
 static void LoadBlock(LoadState* S, void* b, size_t size)
 {
- if (luaZ_read(S->Z,b,size)!=0) error(S,"truncated");
+ if (S->Z->read(b,size)!=0) error(S,"truncated");
 }
 
 static int LoadChar(LoadState* S)
