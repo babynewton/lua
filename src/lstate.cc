@@ -180,21 +180,23 @@ static void init_registry (lua_State *L, global_State *g) {
 /*
 ** open parts of the state that may cause memory-allocation errors
 */
-static void f_luaopen (lua_State *L, void *ud) {
-  global_State *g = G(L);
-  UNUSED(ud);
-  stack_init(L, L);  /* init stack */
-  init_registry(L, g);
-  luaS_resize(L, MINSTRTABSIZE);  /* initial size of string table */
-  luaT_init(L);
-  luaX_init(L);
-  /* pre-create memory-error message */
-  g->memerrmsg = luaS_newliteral(L, MEMERRMSG);
-  luaS_fix(g->memerrmsg);  /* it should never be collected */
-  g->gcrunning = 1;  /* allow gc */
-  g->version = lua_version(NULL);
-  luai_userstateopen(L);
-}
+class F_luaopen:public Pfunc {
+ public:
+  void func	(lua_State *L) {
+    global_State *g = G(L);
+    stack_init(L, L);  /* init stack */
+    init_registry(L, g);
+    luaS_resize(L, MINSTRTABSIZE);  /* initial size of string table */
+    luaT_init(L);
+    luaX_init(L);
+    /* pre-create memory-error message */
+    g->memerrmsg = luaS_newliteral(L, MEMERRMSG);
+    luaS_fix(g->memerrmsg);  /* it should never be collected */
+    g->gcrunning = 1;  /* allow gc */
+    g->version = lua_version(NULL);
+    luai_userstateopen(L);
+  }
+};
 
 
 /*
@@ -304,7 +306,8 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->gcmajorinc = LUAI_GCMAJOR;
   g->gcstepmul = LUAI_GCMUL;
   for (i=0; i < LUA_NUMTAGS; i++) g->mt[i] = NULL;
-  if (luaD_rawrunprotected(L, f_luaopen, NULL) != LUA_OK) {
+  F_luaopen f_luaopen;
+  if (luaD_rawrunprotected(L, &f_luaopen) != LUA_OK) {
     /* memory allocation error: free partial state */
     close_state(L);
     L = NULL;

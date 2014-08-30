@@ -800,10 +800,12 @@ static GCObject *udata2finalize (global_State *g) {
 }
 
 
-static void dothecall (lua_State *L, void *ud) {
-  UNUSED(ud);
-  luaD_call(L, L->top - 2, 0, 0);
-}
+class DotheCall:public Pfunc {
+ public:
+  void func (lua_State *L) {
+    luaD_call(L, L->top - 2, 0, 0);
+  }
+};
 
 
 static void GCTM (lua_State *L, int propagateerrors) {
@@ -821,7 +823,8 @@ static void GCTM (lua_State *L, int propagateerrors) {
     setobj2s(L, L->top, tm);  /* push finalizer... */
     setobj2s(L, L->top + 1, &v);  /* ... and its argument */
     L->top += 2;  /* and (next line) call the finalizer */
-    status = luaD_pcall(L, dothecall, NULL, savestack(L, L->top - 2), 0);
+    DotheCall dothecall;
+    status = luaD_pcall(L, &dothecall, savestack(L, L->top - 2), 0);
     L->allowhook = oldah;  /* restore hooks */
     g->gcrunning = running;  /* restore state */
     if (status != LUA_OK && propagateerrors) {  /* error while running __gc? */
