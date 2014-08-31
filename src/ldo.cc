@@ -643,15 +643,12 @@ class SParser:public Pfunc {  /* data to `f_parser' */
   const char *name;
   SParser(lua_State *L, ZIO *pz, const char *pname, const char *pmode):
       m_L(L), z(pz), mode(pmode), name(pname) {
-   	dyd.actvar.arr = NULL; dyd.actvar.size = 0;
-    dyd.gt.arr = NULL; dyd.gt.size = 0;
-    dyd.label.arr = NULL; dyd.label.size = 0;
   }
   ~SParser(){
     buff.free(m_L);
-    luaM_freearray(m_L, dyd.actvar.arr, dyd.actvar.size);
-    luaM_freearray(m_L, dyd.gt.arr, dyd.gt.size);
-    luaM_freearray(m_L, dyd.label.arr, dyd.label.size);
+	dyd.actvar.free(m_L);
+	dyd.gt.free(m_L);
+	dyd.label.free(m_L);
   }
   void func (lua_State *L);
 };

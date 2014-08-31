@@ -69,23 +69,30 @@ typedef struct Labeldesc {
 
 
 /* list of labels or gotos */
-typedef struct Labellist {
+class Labellist {
+ public:
   Labeldesc *arr;  /* array */
   int n;  /* number of entries in use */
   int size;  /* array size */
-} Labellist;
+  Labellist() : arr(NULL), size(0) {}
+  void free (lua_State *L) { luaM_freearray(L, arr, size); }
+};
 
 
 /* dynamic structures used by the parser */
-typedef struct Dyndata {
-  struct {  /* list of active local variables */
+class Dyndata {
+ public:
+  class Actvar{  /* list of active local variables */
+   public:
     Vardesc *arr;
     int n;
     int size;
+    Actvar() : arr(NULL), size(0) {}
+    void free (lua_State *L) { luaM_freearray(L, arr, size); }
   } actvar;
   Labellist gt;  /* list of pending gotos */
   Labellist label;   /* list of active labels */
-} Dyndata;
+};
 
 
 /* control of blocks */
