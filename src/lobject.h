@@ -158,8 +158,8 @@ typedef struct lua_TValue TValue;
 #define rawuvalue(o)	check_exp(ttisuserdata(o), &val_(o).gc->u)
 #define uvalue(o)	(&rawuvalue(o)->uv)
 #define clvalue(o)	check_exp(ttisclosure(o), &val_(o).gc->cl)
-#define clLvalue(o)	check_exp(ttisLclosure(o), &val_(o).gc->cl.l)
-#define clCvalue(o)	check_exp(ttisCclosure(o), &val_(o).gc->cl.c)
+#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(&val_(o).gc->cl))
+#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(&val_(o).gc->cl))
 #define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
 #define hvalue(o)	check_exp(ttistable(o), &val_(o).gc->h)
 #define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
@@ -464,6 +464,8 @@ typedef struct LocVar {
 /*
 ** Function Prototypes
 */
+class Closure;
+
 typedef struct Proto {
   CommonHeader;
   TValue *k;  /* constants used by the function */
@@ -472,7 +474,7 @@ typedef struct Proto {
   int *lineinfo;  /* map from opcodes to source lines (debug information) */
   LocVar *locvars;  /* information about local variables (debug information) */
   Upvaldesc *upvalues;  /* upvalue information */
-  union Closure *cache;  /* last created closure with this prototype */
+  Closure *cache;  /* last created closure with this prototype */
   TString  *source;  /* used for debug information */
   int sizeupvalues;  /* size of 'upvalues' */
   int sizek;  /* size of `k' */
@@ -513,24 +515,24 @@ typedef struct UpVal {
 #define ClosureHeader \
 	CommonHeader; lu_byte nupvalues; GCObject *gclist
 
-typedef struct CClosure {
+class Closure {
+ public:
   ClosureHeader;
+};
+
+
+class CClosure : public Closure {
+ public:
   lua_CFunction f;
   TValue upvalue[1];  /* list of upvalues */
-} CClosure;
+};
 
 
-typedef struct LClosure {
-  ClosureHeader;
+class LClosure : public Closure {
+ public:
   struct Proto *p;
   UpVal *upvals[1];  /* list of upvalues */
-} LClosure;
-
-
-typedef union Closure {
-  CClosure c;
-  LClosure l;
-} Closure;
+};
 
 
 #define isLfunction(o)	ttisLclosure(o)

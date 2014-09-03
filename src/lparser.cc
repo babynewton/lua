@@ -1623,7 +1623,7 @@ Closure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
   /* anchor closure (to avoid being collected) */
   setclLvalue(L, L->top, cl);
   incr_top(L);
-  funcstate.f = cl->l.p = luaF_newproto(L);
+  funcstate.f = ((LClosure*)cl)->p = luaF_newproto(L);
   funcstate.f->source = luaS_new(L, name);  /* create and anchor TString */
   lexstate.buff = buff;
   lexstate.dyd = dyd;

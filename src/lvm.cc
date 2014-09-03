@@ -384,7 +384,7 @@ static Closure *getcached (Proto *p, UpVal **encup, StkId base) {
     int i;
     for (i = 0; i < nup; i++) {  /* check whether it has right upvalues */
       TValue *v = uv[i].instack ? base + uv[i].idx : encup[uv[i].idx]->v;
-      if (c->l.upvals[i]->v != v)
+      if (((LClosure*)c)->upvals[i]->v != v)
         return NULL;  /* wrong upvalue; cannot reuse closure */
     }
   }
@@ -403,14 +403,14 @@ static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
   int nup = p->sizeupvalues;
   Upvaldesc *uv = p->upvalues;
   int i;
-  Closure *ncl = luaF_newLclosure(L, nup);
-  ncl->l.p = p;
+  LClosure *ncl = luaF_newLclosure(L, nup);
+  ncl->p = p;
   setclLvalue(L, ra, ncl);  /* anchor new closure in stack */
   for (i = 0; i < nup; i++) {  /* fill in its upvalues */
     if (uv[i].instack)  /* upvalue refers to local variable? */
-      ncl->l.upvals[i] = luaF_findupval(L, base + uv[i].idx);
+      ncl->upvals[i] = luaF_findupval(L, base + uv[i].idx);
     else  /* get upvalue from enclosing function */
-      ncl->l.upvals[i] = encup[uv[i].idx];
+      ncl->upvals[i] = encup[uv[i].idx];
   }
   luaC_barrierproto(L, p, ncl);
   p->cache = ncl;  /* save it on cache for reuse */

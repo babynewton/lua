@@ -665,20 +665,20 @@ void SParser::checkmode (lua_State *L, const char *x) {
 
 void SParser::func (lua_State *L) {
   int i;
-  Closure *cl;
+  LClosure *cl;
   int c = z->getc();  /* read first character */
   if (c == LUA_SIGNATURE[0]) {
     checkmode(L, "binary");
-    cl = luaU_undump(L, z, &buff, name);
+    cl = (LClosure*)luaU_undump(L, z, &buff, name);
   }
   else {
     checkmode(L, "text");
-    cl = luaY_parser(L, z, &buff, &dyd, name, c);
+    cl = (LClosure*)luaY_parser(L, z, &buff, &dyd, name, c);
   }
-  lua_assert(cl->l.nupvalues == cl->l.p->sizeupvalues);
-  for (i = 0; i < cl->l.nupvalues; i++) {  /* initialize upvalues */
+  lua_assert(cl->nupvalues == cl->p->sizeupvalues);
+  for (i = 0; i < cl->nupvalues; i++) {  /* initialize upvalues */
     UpVal *up = luaF_newupval(L);
-    cl->l.upvals[i] = up;
+    cl->upvals[i] = up;
     luaC_objbarrier(L, cl, up);
   }
 }

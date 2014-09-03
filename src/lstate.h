@@ -186,7 +186,7 @@ union GCObject {
   GCheader gch;  /* common header */
   union TString ts;
   union Udata u;
-  union Closure cl;
+  Closure cl;
   struct Table h;
   struct Proto p;
   struct UpVal uv;
@@ -202,8 +202,8 @@ union GCObject {
 #define gco2ts(o)	(&rawgco2ts(o)->tsv)
 #define rawgco2u(o)	check_exp((o)->gch.tt == LUA_TUSERDATA, &((o)->u))
 #define gco2u(o)	(&rawgco2u(o)->uv)
-#define gco2lcl(o)	check_exp((o)->gch.tt == LUA_TLCL, &((o)->cl.l))
-#define gco2ccl(o)	check_exp((o)->gch.tt == LUA_TCCL, &((o)->cl.c))
+#define gco2lcl(o)	check_exp((o)->gch.tt == LUA_TLCL, (LClosure*)&((o)->cl))
+#define gco2ccl(o)	check_exp((o)->gch.tt == LUA_TCCL, (CClosure*)&((o)->cl))
 #define gco2cl(o)  \
 	check_exp(novariant((o)->gch.tt) == LUA_TFUNCTION, &((o)->cl))
 #define gco2t(o)	check_exp((o)->gch.tt == LUA_TTABLE, &((o)->h))

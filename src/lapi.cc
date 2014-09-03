@@ -565,15 +565,15 @@ LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
     setfvalue(L->top, fn);
   }
   else {
-    Closure *cl;
+    CClosure *cl;
     api_checknelems(L, n);
     api_check(L, n <= MAXUPVAL, "upvalue index too large");
     luaC_checkGC(L);
     cl = luaF_newCclosure(L, n);
-    cl->c.f = fn;
+    cl->f = fn;
     L->top -= n;
     while (n--)
-      setobj2n(L, &cl->c.upvalue[n], L->top + n);
+      setobj2n(L, &cl->upvalue[n], L->top + n);
     setclCvalue(L, L->top, cl);
   }
   api_incr_top(L);

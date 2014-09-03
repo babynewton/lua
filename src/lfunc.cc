@@ -20,18 +20,18 @@
 
 
 
-Closure *luaF_newCclosure (lua_State *L, int n) {
-  Closure *c = &luaC_newobj(L, LUA_TCCL, sizeCclosure(n), NULL, 0)->cl;
-  c->c.nupvalues = cast_byte(n);
+CClosure *luaF_newCclosure (lua_State *L, int n) {
+  CClosure *c = (CClosure*)&luaC_newobj(L, LUA_TCCL, sizeCclosure(n), NULL, 0)->cl;
+  c->nupvalues = cast_byte(n);
   return c;
 }
 
 
-Closure *luaF_newLclosure (lua_State *L, int n) {
-  Closure *c = &luaC_newobj(L, LUA_TLCL, sizeLclosure(n), NULL, 0)->cl;
-  c->l.p = NULL;
-  c->l.nupvalues = cast_byte(n);
-  while (n--) c->l.upvals[n] = NULL;
+LClosure *luaF_newLclosure (lua_State *L, int n) {
+  LClosure *c = (LClosure*)&luaC_newobj(L, LUA_TLCL, sizeLclosure(n), NULL, 0)->cl;
+  c->p = NULL;
+  c->nupvalues = cast_byte(n);
+  while (n--) c->upvals[n] = NULL;
   return c;
 }
 
