@@ -1619,11 +1619,11 @@ Closure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
                       Dyndata *dyd, const char *name, int firstchar) {
   LexState lexstate;
   FuncState funcstate;
-  Closure *cl = luaF_newLclosure(L, 1);  /* create main closure */
+  LClosure *cl = luaF_newLclosure(L, 1);  /* create main closure */
   /* anchor closure (to avoid being collected) */
   setclLvalue(L, L->top, cl);
   incr_top(L);
-  funcstate.f = ((LClosure*)cl)->p = luaF_newproto(L);
+  funcstate.f = cl->p = luaF_newproto(L);
   funcstate.f->source = luaS_new(L, name);  /* create and anchor TString */
   lexstate.buff = buff;
   lexstate.dyd = dyd;
