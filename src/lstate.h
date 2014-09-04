@@ -185,7 +185,7 @@ struct lua_State {
 union GCObject {
   GCheader gch;  /* common header */
   union TString ts;
-  union Udata u;
+  struct Udata u;
   Closure cl;
   struct Table h;
   struct Proto p;
@@ -201,7 +201,7 @@ union GCObject {
 	check_exp(novariant((o)->gch.tt) == LUA_TSTRING, &((o)->ts))
 #define gco2ts(o)	(&rawgco2ts(o)->tsv)
 #define rawgco2u(o)	check_exp((o)->gch.tt == LUA_TUSERDATA, &((o)->u))
-#define gco2u(o)	(&rawgco2u(o)->uv)
+#define gco2u(o)	(rawgco2u(o))
 #define gco2lcl(o)	check_exp((o)->gch.tt == LUA_TLCL, (LClosure*)&((o)->cl))
 #define gco2ccl(o)	check_exp((o)->gch.tt == LUA_TCCL, (CClosure*)&((o)->cl))
 #define gco2cl(o)  \

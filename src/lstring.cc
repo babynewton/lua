@@ -177,9 +177,9 @@ Udata *luaS_newudata (lua_State *L, size_t s, Table *e) {
   if (s > MAX_SIZET - sizeof(Udata))
     luaM_toobig(L);
   u = &luaC_newobj(L, LUA_TUSERDATA, sizeof(Udata) + s, NULL, 0)->u;
-  u->uv.len = s;
-  u->uv.metatable = NULL;
-  u->uv.env = e;
+  u->len = s;
+  u->metatable = NULL;
+  u->env = e;
   return u;
 }
 
