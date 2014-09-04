@@ -31,10 +31,10 @@
 ** equality for long strings
 */
 int luaS_eqlngstr (TString *a, TString *b) {
-  size_t len = a->tsv.len;
-  lua_assert(a->tsv.tt == LUA_TLNGSTR && b->tsv.tt == LUA_TLNGSTR);
+  size_t len = a->len;
+  lua_assert(a->tt == LUA_TLNGSTR && b->tt == LUA_TLNGSTR);
   return (a == b) ||  /* same instance or... */
-    ((len == b->tsv.len) &&  /* equal length and ... */
+    ((len == b->len) &&  /* equal length and ... */
      (memcmp(getstr(a), getstr(b), len) == 0));  /* equal contents */
 }
 
@@ -43,8 +43,8 @@ int luaS_eqlngstr (TString *a, TString *b) {
 ** equality for strings
 */
 int luaS_eqstr (TString *a, TString *b) {
-  return (a->tsv.tt == b->tsv.tt) &&
-         (a->tsv.tt == LUA_TSHRSTR ? eqshrstr(a, b) : luaS_eqlngstr(a, b));
+  return (a->tt == b->tt) &&
+         (a->tt == LUA_TSHRSTR ? eqshrstr(a, b) : luaS_eqlngstr(a, b));
 }
 
 
@@ -101,9 +101,9 @@ static TString *createstrobj (lua_State *L, const char *str, size_t l,
   size_t totalsize;  /* total size of TString object */
   totalsize = sizeof(TString) + ((l + 1) * sizeof(char));
   ts = &luaC_newobj(L, tag, totalsize, list, 0)->ts;
-  ts->tsv.len = l;
-  ts->tsv.hash = h;
-  ts->tsv.extra = 0;
+  ts->len = l;
+  ts->hash = h;
+  ts->extra = 0;
   memcpy(ts+1, str, l*sizeof(char));
   ((char *)(ts+1))[l] = '\0';  /* ending 0 */
   return ts;
@@ -138,8 +138,8 @@ static TString *internshrstr (lua_State *L, const char *str, size_t l) {
        o != NULL;
        o = gch(o)->next) {
     TString *ts = rawgco2ts(o);
-    if (h == ts->tsv.hash &&
-        l == ts->tsv.len &&
+    if (h == ts->hash &&
+        l == ts->len &&
         (memcmp(str, getstr(ts), l * sizeof(char)) == 0)) {
       if (isdead(G(L), o))  /* string is dead (but was not collected yet)? */
         changewhite(o);  /* resurrect it */

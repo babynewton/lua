@@ -50,7 +50,7 @@
 
 #define hashpow2(t,n)		(gnode(t, lmod((n), sizenode(t))))
 
-#define hashstr(t,str)		hashpow2(t, (str)->tsv.hash)
+#define hashstr(t,str)		hashpow2(t, (str)->hash)
 #define hashboolean(t,p)	hashpow2(t, p)
 
 
@@ -100,9 +100,9 @@ static Node *mainposition (const Table *t, const TValue *key) {
       return hashnum(t, nvalue(key));
     case LUA_TLNGSTR: {
       TString *s = rawtsvalue(key);
-      if (s->tsv.extra == 0) {  /* no hash? */
-        s->tsv.hash = luaS_hash(getstr(s), s->tsv.len, s->tsv.hash);
-        s->tsv.extra = 1;  /* now it has its hash */
+      if (s->extra == 0) {  /* no hash? */
+        s->hash = luaS_hash(getstr(s), s->len, s->hash);
+        s->extra = 1;  /* now it has its hash */
       }
       return hashstr(t, rawtsvalue(key));
     }
@@ -465,7 +465,7 @@ const TValue *luaH_getint (Table *t, int key) {
 */
 const TValue *luaH_getstr (Table *t, TString *key) {
   Node *n = hashstr(t, key);
-  lua_assert(key->tsv.tt == LUA_TSHRSTR);
+  lua_assert(key->tt == LUA_TSHRSTR);
   do {  /* check whether `key' is somewhere in the chain */
     if (ttisshrstring(gkey(n)) && eqshrstr(rawtsvalue(gkey(n)), key))
       return gval(n);  /* that's it */

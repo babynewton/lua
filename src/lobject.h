@@ -154,7 +154,7 @@ typedef struct lua_TValue TValue;
 #define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
 #define rawtsvalue(o)	check_exp(ttisstring(o), &val_(o).gc->ts)
-#define tsvalue(o)	(&rawtsvalue(o)->tsv)
+#define tsvalue(o)	(rawtsvalue(o))
 #define rawuvalue(o)	check_exp(ttisuserdata(o), &val_(o).gc->u)
 #define uvalue(o)	(rawuvalue(o))
 #define clvalue(o)	check_exp(ttisclosure(o), &val_(o).gc->cl)
@@ -205,7 +205,7 @@ typedef struct lua_TValue TValue;
 #define setsvalue(L,obj,x) \
   { TValue *io=(obj); \
     TString *x_ = (x); \
-    val_(io).gc=cast(GCObject *, x_); settt_(io, ctb(x_->tsv.tt)); \
+    val_(io).gc=cast(GCObject *, x_); settt_(io, ctb(x_->tt)); \
     checkliveness(G(L),io); }
 
 #define setuvalue(L,obj,x) \
@@ -407,14 +407,11 @@ typedef TValue *StkId;  /* index to stack elements */
 /*
 ** Header for string value; string bytes follow the end of this structure
 */
-typedef union TString {
-  L_Umaxalign dummy;  /* ensures maximum alignment for strings */
-  struct {
-    CommonHeader;
-    lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
-    unsigned int hash;
-    size_t len;  /* number of characters in string */
-  } tsv;
+typedef struct TString {
+  CommonHeader;
+  lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
+  unsigned int hash;
+  size_t len;  /* number of characters in string */
 } TString;
 
 

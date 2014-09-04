@@ -67,7 +67,7 @@ void luaX_init (lua_State *L) {
   for (i=0; i<NUM_RESERVED; i++) {
     TString *ts = luaS_new(L, luaX_tokens[i]);
     luaS_fix(ts);  /* reserved words are never collected */
-    ts->tsv.extra = cast_byte(i+1);  /* reserved word */
+    ts->extra = cast_byte(i+1);  /* reserved word */
   }
 }
 
@@ -495,7 +495,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
                                   ls->buff->bufflen());
           seminfo->ts = ts;
           if (isreserved(ts))  /* reserved word? */
-            return ts->tsv.extra - 1 + FIRST_RESERVED;
+            return ts->extra - 1 + FIRST_RESERVED;
           else {
             return TK_NAME;
           }
