@@ -151,7 +151,8 @@ typedef struct global_State {
 /*
 ** `per thread' state
 */
-struct lua_State {
+class lua_State {
+ public:
   CommonHeader;
   lu_byte status;
   StkId top;  /* first free slot in the stack */
@@ -184,13 +185,13 @@ struct lua_State {
 */
 union GCObject {
   GCheader gch;  /* common header */
-  struct TString ts;
-  struct Udata u;
+  TString ts;
+  Udata u;
   Closure cl;
-  struct Table h;
-  struct Proto p;
-  struct UpVal uv;
-  struct lua_State th;  /* thread */
+  Table h;
+  Proto p;
+  UpVal uv;
+  lua_State th;  /* thread */
 };
 
 

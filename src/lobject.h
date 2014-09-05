@@ -407,12 +407,13 @@ typedef TValue *StkId;  /* index to stack elements */
 /*
 ** Header for string value; string bytes follow the end of this structure
 */
-typedef struct TString {
+class TString {
+ public:
   CommonHeader;
   lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
   unsigned int hash;
   size_t len;  /* number of characters in string */
-} TString;
+};
 
 
 /* get the actual string (array of bytes) from a TString */
@@ -425,12 +426,13 @@ typedef struct TString {
 /*
 ** Header for userdata; memory area follows the end of this structure
 */
-typedef struct Udata {
+class Udata {
+ public:
   CommonHeader;
   struct Table *metatable;
   struct Table *env;
   size_t len;  /* number of bytes */
-} Udata;
+};
 
 
 
@@ -460,7 +462,8 @@ typedef struct LocVar {
 */
 class Closure;
 
-typedef struct Proto {
+class Proto {
+ public:
   CommonHeader;
   TValue *k;  /* constants used by the function */
   Instruction *code;
@@ -482,14 +485,15 @@ typedef struct Proto {
   lu_byte numparams;  /* number of fixed parameters */
   lu_byte is_vararg;
   lu_byte maxstacksize;  /* maximum stack used by this function */
-} Proto;
+};
 
 
 
 /*
 ** Lua Upvalues
 */
-typedef struct UpVal {
+class UpVal {
+ public:
   CommonHeader;
   TValue *v;  /* points to stack or to its own value */
   union {
@@ -499,7 +503,7 @@ typedef struct UpVal {
       struct UpVal *next;
     } l;
   } u;
-} UpVal;
+};
 
 
 /*
@@ -553,7 +557,8 @@ typedef struct Node {
 } Node;
 
 
-typedef struct Table {
+class Table {
+ public:
   CommonHeader;
   lu_byte flags;  /* 1<<p means tagmethod(p) is not present */
   lu_byte lsizenode;  /* log2 of size of `node' array */
@@ -563,7 +568,7 @@ typedef struct Table {
   Node *lastfree;  /* any free position is before this position */
   GCObject *gclist;
   int sizearray;  /* size of `array' array */
-} Table;
+};
 
 
 
