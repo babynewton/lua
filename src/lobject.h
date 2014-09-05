@@ -67,7 +67,7 @@
 /*
 ** Union of all collectable objects
 */
-typedef union GCObject GCObject;
+class GCObject;
 
 
 /*
@@ -78,11 +78,28 @@ typedef union GCObject GCObject;
 
 
 /*
+** Union of all collectable objects
+*/
+class GCObject {
+ public:
+  CommonHeader;
+//  GCheader gch;  /* common header */
+//  TString ts;
+//  Udata u;
+//  Closure cl;
+//  Table h;
+//  Proto p;
+//  UpVal uv;
+//  lua_State th;  /* thread */
+};
+
+
+
+/*
 ** Common header in struct form
 */
-typedef struct GCheader {
-  CommonHeader;
-} GCheader;
+class GCheader : public GCObject {
+};
 
 
 
@@ -153,17 +170,17 @@ typedef struct lua_TValue TValue;
 #define nvalue(o)	check_exp(ttisnumber(o), num_(o))
 #define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
-#define rawtsvalue(o)	check_exp(ttisstring(o), &val_(o).gc->ts)
+#define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(&val_(o).gc))
 #define tsvalue(o)	(rawtsvalue(o))
-#define rawuvalue(o)	check_exp(ttisuserdata(o), &val_(o).gc->u)
+#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(&val_(o).gc))
 #define uvalue(o)	(rawuvalue(o))
-#define clvalue(o)	check_exp(ttisclosure(o), &val_(o).gc->cl)
-#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(&val_(o).gc->cl))
-#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(&val_(o).gc->cl))
+#define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(&val_(o).gc))
+#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(&val_(o).gc))
+#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(&val_(o).gc))
 #define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
-#define hvalue(o)	check_exp(ttistable(o), &val_(o).gc->h)
+#define hvalue(o)	check_exp(ttistable(o), (Table*)(&val_(o).gc))
 #define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
-#define thvalue(o)	check_exp(ttisthread(o), &val_(o).gc->th)
+#define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(&val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
 
@@ -407,9 +424,8 @@ typedef TValue *StkId;  /* index to stack elements */
 /*
 ** Header for string value; string bytes follow the end of this structure
 */
-class TString {
+class TString : public GCObject {
  public:
-  CommonHeader;
   lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
   unsigned int hash;
   size_t len;  /* number of characters in string */
@@ -426,9 +442,8 @@ class TString {
 /*
 ** Header for userdata; memory area follows the end of this structure
 */
-class Udata {
+class Udata : public GCObject {
  public:
-  CommonHeader;
   struct Table *metatable;
   struct Table *env;
   size_t len;  /* number of bytes */
@@ -462,9 +477,8 @@ typedef struct LocVar {
 */
 class Closure;
 
-class Proto {
+class Proto : public GCObject {
  public:
-  CommonHeader;
   TValue *k;  /* constants used by the function */
   Instruction *code;
   struct Proto **p;  /* functions defined inside the function */
@@ -492,9 +506,8 @@ class Proto {
 /*
 ** Lua Upvalues
 */
-class UpVal {
+class UpVal : public GCObject {
  public:
-  CommonHeader;
   TValue *v;  /* points to stack or to its own value */
   union {
     TValue value;  /* the value (when closed) */
@@ -557,9 +570,8 @@ typedef struct Node {
 } Node;
 
 
-class Table {
+class Table : public GCObject{
  public:
-  CommonHeader;
   lu_byte flags;  /* 1<<p means tagmethod(p) is not present */
   lu_byte lsizenode;  /* log2 of size of `node' array */
   struct Table *metatable;

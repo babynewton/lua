@@ -151,9 +151,8 @@ typedef struct global_State {
 /*
 ** `per thread' state
 */
-class lua_State {
+class lua_State : public GCObject {
  public:
-  CommonHeader;
   lu_byte status;
   StkId top;  /* first free slot in the stack */
   global_State *l_G;
@@ -180,31 +179,16 @@ class lua_State {
 #define G(L)	(L->l_G)
 
 
-/*
-** Union of all collectable objects
-*/
-union GCObject {
-  GCheader gch;  /* common header */
-  TString ts;
-  Udata u;
-  Closure cl;
-  Table h;
-  Proto p;
-  UpVal uv;
-  lua_State th;  /* thread */
-};
-
-
 #define gch(o)		(&(o)->gch)
 
 /* macros to convert a GCObject into a specific value */
 #define rawgco2ts(o)  \
-	check_exp(novariant((o)->gch.tt) == LUA_TSTRING, &((o)->ts))
+	check_exp(novariant((o)->tt) == LUA_TSTRING, &((o)->ts))
 #define gco2ts(o)	(rawgco2ts(o))
-#define rawgco2u(o)	check_exp((o)->gch.tt == LUA_TUSERDATA, &((o)->u))
+#define rawgco2u(o)	check_exp((o)->tt == LUA_TUSERDATA, &((o)->u))
 #define gco2u(o)	(rawgco2u(o))
-#define gco2lcl(o)	check_exp((o)->gch.tt == LUA_TLCL, (LClosure*)&((o)->cl))
-#define gco2ccl(o)	check_exp((o)->gch.tt == LUA_TCCL, (CClosure*)&((o)->cl))
+#define gco2lcl(o)	check_exp((o)->tt == LUA_TLCL, (LClosure*)(&(o)->cl))
+#define gco2ccl(o)	check_exp((o)->tt == LUA_TCCL, (CClosure*)&((o)->cl))
 #define gco2cl(o)  \
 	check_exp(novariant((o)->gch.tt) == LUA_TFUNCTION, &((o)->cl))
 #define gco2t(o)	check_exp((o)->gch.tt == LUA_TTABLE, &((o)->h))
