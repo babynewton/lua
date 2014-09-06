@@ -21,14 +21,14 @@
 
 
 CClosure *luaF_newCclosure (lua_State *L, int n) {
-  CClosure *c = (CClosure*)&luaC_newobj(L, LUA_TCCL, sizeCclosure(n), NULL, 0)->cl;
+  CClosure *c = (CClosure*)luaC_newobj(L, LUA_TCCL, sizeCclosure(n), NULL, 0);
   c->nupvalues = cast_byte(n);
   return c;
 }
 
 
 LClosure *luaF_newLclosure (lua_State *L, int n) {
-  LClosure *c = (LClosure*)&luaC_newobj(L, LUA_TLCL, sizeLclosure(n), NULL, 0)->cl;
+  LClosure *c = (LClosure*)luaC_newobj(L, LUA_TLCL, sizeLclosure(n), NULL, 0);
   c->p = NULL;
   c->nupvalues = cast_byte(n);
   while (n--) c->upvals[n] = NULL;
@@ -37,7 +37,7 @@ LClosure *luaF_newLclosure (lua_State *L, int n) {
 
 
 UpVal *luaF_newupval (lua_State *L) {
-  UpVal *uv = &luaC_newobj(L, LUA_TUPVAL, sizeof(UpVal), NULL, 0)->uv;
+  UpVal *uv = (UpVal*)luaC_newobj(L, LUA_TUPVAL, sizeof(UpVal), NULL, 0);
   uv->v = &uv->u.value;
   setnilvalue(uv->v);
   return uv;
@@ -61,7 +61,7 @@ UpVal *luaF_findupval (lua_State *L, StkId level) {
     pp = &p->next;
   }
   /* not found: create a new one */
-  uv = &luaC_newobj(L, LUA_TUPVAL, sizeof(UpVal), pp, 0)->uv;
+  uv = (UpVal*) luaC_newobj(L, LUA_TUPVAL, sizeof(UpVal), pp, 0);
   uv->v = level;  /* current value lives in the stack */
   uv->u.l.prev = &g->uvhead;  /* double link it in `uvhead' list */
   uv->u.l.next = g->uvhead.u.l.next;
@@ -108,7 +108,7 @@ void luaF_close (lua_State *L, StkId level) {
 
 
 Proto *luaF_newproto (lua_State *L) {
-  Proto *f = &luaC_newobj(L, LUA_TPROTO, sizeof(Proto), NULL, 0)->p;
+  Proto *f = (Proto*)luaC_newobj(L, LUA_TPROTO, sizeof(Proto), NULL, 0);
   f->k = NULL;
   f->sizek = 0;
   f->p = NULL;

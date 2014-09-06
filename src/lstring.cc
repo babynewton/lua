@@ -100,7 +100,7 @@ static TString *createstrobj (lua_State *L, const char *str, size_t l,
   TString *ts;
   size_t totalsize;  /* total size of TString object */
   totalsize = sizeof(TString) + ((l + 1) * sizeof(char));
-  ts = &luaC_newobj(L, tag, totalsize, list, 0)->ts;
+  ts = (TString*)luaC_newobj(L, tag, totalsize, list, 0);
   ts->len = l;
   ts->hash = h;
   ts->extra = 0;
@@ -176,7 +176,7 @@ Udata *luaS_newudata (lua_State *L, size_t s, Table *e) {
   Udata *u;
   if (s > MAX_SIZET - sizeof(Udata))
     luaM_toobig(L);
-  u = &luaC_newobj(L, LUA_TUSERDATA, sizeof(Udata) + s, NULL, 0)->u;
+  u = (Udata*)luaC_newobj(L, LUA_TUSERDATA, sizeof(Udata) + s, NULL, 0);
   u->len = s;
   u->metatable = NULL;
   u->env = e;

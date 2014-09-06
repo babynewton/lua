@@ -179,22 +179,22 @@ class lua_State : public GCObject {
 #define G(L)	(L->l_G)
 
 
-#define gch(o)		(&(o)->gch)
+#define gch(o)		((GCheader*)(o))
 
 /* macros to convert a GCObject into a specific value */
 #define rawgco2ts(o)  \
-	check_exp(novariant((o)->tt) == LUA_TSTRING, &((o)->ts))
+	check_exp(novariant((o)->tt) == LUA_TSTRING, (TString*)(o))
 #define gco2ts(o)	(rawgco2ts(o))
-#define rawgco2u(o)	check_exp((o)->tt == LUA_TUSERDATA, &((o)->u))
+#define rawgco2u(o)	check_exp((o)->tt == LUA_TUSERDATA, (Udata*)(o))
 #define gco2u(o)	(rawgco2u(o))
-#define gco2lcl(o)	check_exp((o)->tt == LUA_TLCL, (LClosure*)(&(o)->cl))
-#define gco2ccl(o)	check_exp((o)->tt == LUA_TCCL, (CClosure*)&((o)->cl))
+#define gco2lcl(o)	check_exp((o)->tt == LUA_TLCL, (LClosure*)(o))
+#define gco2ccl(o)	check_exp((o)->tt == LUA_TCCL, (CClosure*)(o))
 #define gco2cl(o)  \
-	check_exp(novariant((o)->gch.tt) == LUA_TFUNCTION, &((o)->cl))
-#define gco2t(o)	check_exp((o)->gch.tt == LUA_TTABLE, &((o)->h))
-#define gco2p(o)	check_exp((o)->gch.tt == LUA_TPROTO, &((o)->p))
-#define gco2uv(o)	check_exp((o)->gch.tt == LUA_TUPVAL, &((o)->uv))
-#define gco2th(o)	check_exp((o)->gch.tt == LUA_TTHREAD, &((o)->th))
+	check_exp(novariant((o)->gch.tt) == LUA_TFUNCTION, (Closure*)(o))
+#define gco2t(o)	check_exp((o)->tt == LUA_TTABLE, (Table*)(o))
+#define gco2p(o)	check_exp((o)->tt == LUA_TPROTO, (Proto*)(o))
+#define gco2uv(o)	check_exp((o)->tt == LUA_TUPVAL, (UpVal*)(o))
+#define gco2th(o)	check_exp((o)->tt == LUA_TTHREAD, (lua_State*)(o))
 
 /* macro to convert any Lua object into a GCObject */
 #define obj2gco(v)	(cast(GCObject *, (v)))

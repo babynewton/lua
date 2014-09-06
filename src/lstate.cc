@@ -74,7 +74,11 @@ typedef struct LG {
 
 
 
-#define fromstate(L)	(cast(LX *, cast(lu_byte *, (L)) - offsetof(LX, l)))
+#if defined(LUAI_EXTRASPACE)
+#define fromstate(L)	(cast(LX *, cast(lu_byte *, (L)) - LUAI_EXTRASPACE))
+#else
+#define fromstate(L)	(cast(LX *, (L)))
+#endif
 
 
 /*
@@ -240,7 +244,11 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
   lua_State *L1;
   lua_lock(L);
   luaC_checkGC(L);
-  L1 = &luaC_newobj(L, LUA_TTHREAD, sizeof(LX), NULL, offsetof(LX, l))->th;
+#if defined(LUAI_EXTRASPACE)
+  L1 = (lua_State*) luaC_newobj(L, LUA_TTHREAD, sizeof(LX), NULL, LUAI_EXTRASPACE);
+#else
+  L1 = (lua_State*) luaC_newobj(L, LUA_TTHREAD, sizeof(LX), NULL, 0);
+#endif
   setthvalue(L, L->top, L1);
   api_incr_top(L);
   preinit_state(L1, G(L));

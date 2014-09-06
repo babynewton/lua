@@ -64,25 +64,13 @@
 #define ctb(t)			((t) | BIT_ISCOLLECTABLE)
 
 
-/*
-** Union of all collectable objects
-*/
-class GCObject;
-
-
-/*
-** Common Header for all collectable objects (in macro form, to be
-** included in other objects)
-*/
-#define CommonHeader	GCObject *next; lu_byte tt; lu_byte marked
-
 
 /*
 ** Union of all collectable objects
 */
 class GCObject {
  public:
-  CommonHeader;
+  GCObject *next; lu_byte tt; lu_byte marked;
 //  GCheader gch;  /* common header */
 //  TString ts;
 //  Udata u;
@@ -524,9 +512,9 @@ class UpVal : public GCObject {
 */
 
 #define ClosureHeader \
-	CommonHeader; lu_byte nupvalues; GCObject *gclist
+	lu_byte nupvalues; GCObject *gclist
 
-class Closure {
+class Closure : public GCObject {
  public:
   ClosureHeader;
 };
