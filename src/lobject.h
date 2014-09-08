@@ -64,7 +64,6 @@
 #define ctb(t)			((t) | BIT_ISCOLLECTABLE)
 
 
-
 /*
 ** Union of all collectable objects
 */
@@ -158,17 +157,17 @@ typedef struct lua_TValue TValue;
 #define nvalue(o)	check_exp(ttisnumber(o), num_(o))
 #define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
-#define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(&val_(o).gc))
+#define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(val_(o).gc))
 #define tsvalue(o)	(rawtsvalue(o))
-#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(&val_(o).gc))
+#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(val_(o).gc))
 #define uvalue(o)	(rawuvalue(o))
-#define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(&val_(o).gc))
-#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(&val_(o).gc))
-#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(&val_(o).gc))
+#define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(val_(o).gc))
+#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
+#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
 #define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
-#define hvalue(o)	check_exp(ttistable(o), (Table*)(&val_(o).gc))
+#define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
 #define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
-#define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(&val_(o).gc))
+#define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
 
