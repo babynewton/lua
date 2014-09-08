@@ -34,7 +34,7 @@
 
 const TValue *luaV_tonumber (const TValue *obj, TValue *n) {
   lua_Number num;
-  if (ttisnumber(obj)) return obj;
+  if (((TValue*)obj)->is_number()) return obj;
   if (ttisstring(obj) && luaO_str2d(svalue(obj), tsvalue(obj)->len, &num)) {
     setnvalue(n, num);
     return n;
@@ -45,7 +45,7 @@ const TValue *luaV_tonumber (const TValue *obj, TValue *n) {
 
 
 int luaV_tostring (lua_State *L, StkId obj) {
-  if (!ttisnumber(obj))
+  if (!obj->is_number())
     return 0;
   else {
     char s[LUAI_MAXNUMBER2STR];
@@ -230,7 +230,7 @@ static int l_strcmp (const TString *ls, const TString *rs) {
 
 int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
   int res;
-  if (ttisnumber(l) && ttisnumber(r))
+  if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numlt(L, nvalue(l), nvalue(r));
   else if (ttisstring(l) && ttisstring(r))
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) < 0;
@@ -242,7 +242,7 @@ int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
 
 int luaV_lessequal (lua_State *L, const TValue *l, const TValue *r) {
   int res;
-  if (ttisnumber(l) && ttisnumber(r))
+  if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numle(L, nvalue(l), nvalue(r));
   else if (ttisstring(l) && ttisstring(r))
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) <= 0;
@@ -295,7 +295,7 @@ void luaV_concat (lua_State *L, int total) {
   do {
     StkId top = L->top;
     int n = 2;  /* number of elements handled in this pass (at least 2) */
-    if (!(ttisstring(top-2) || ttisnumber(top-2)) || !tostring(L, top-1)) {
+    if (!(ttisstring(top-2) || (top-2)->is_number()) || !tostring(L, top-1)) {
       if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT))
         luaG_concaterror(L, top-2, top-1);
     }
@@ -520,7 +520,7 @@ void luaV_finishOp (lua_State *L) {
 #define arith_op(op,tm) { \
         TValue *rb = RKB(i); \
         TValue *rc = RKC(i); \
-        if (ttisnumber(rb) && ttisnumber(rc)) { \
+        if (((rb)->is_number()) && ((rc)->is_number())) { \
           lua_Number nb = nvalue(rb), nc = nvalue(rc); \
           setnvalue(ra, op(L, nb, nc)); \
         } \
@@ -634,7 +634,7 @@ void luaV_execute (lua_State *L) {
       )
       vmcase(OP_UNM,
         TValue *rb = RB(i);
-        if (ttisnumber(rb)) {
+        if (rb->is_number()) {
           lua_Number nb = nvalue(rb);
           setnvalue(ra, luai_numunm(L, nb));
         }

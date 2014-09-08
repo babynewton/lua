@@ -310,7 +310,7 @@ LUA_API void lua_arith (lua_State *L, int op) {
   }
   o1 = L->top - 2;
   o2 = L->top - 1;
-  if (ttisnumber(o1) && ttisnumber(o2)) {
+  if (o1->is_number() && o2->is_number()) {
     setnvalue(o1, luaO_arith(op, nvalue(o1), nvalue(o2)));
   }
   else

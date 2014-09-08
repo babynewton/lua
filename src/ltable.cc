@@ -125,7 +125,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
 ** the array part of the table, -1 otherwise.
 */
 static int arrayindex (const TValue *key) {
-  if (ttisnumber(key)) {
+  if (((TValue*)key)->is_number()) {
     lua_Number n = nvalue(key);
     int k;
     lua_number2int(k, n);
@@ -405,7 +405,7 @@ static Node *getfreepos (Table *t) {
 TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
   Node *mp;
   if (ttisnil(key)) luaG_runerror(L, "table index is nil");
-  else if (ttisnumber(key) && luai_numisnan(L, nvalue(key)))
+  else if (((TValue*)key)->is_number() && luai_numisnan(L, nvalue(key)))
     luaG_runerror(L, "table index is NaN");
   mp = mainposition(t, key);
   if (!ttisnil(gval(mp)) || isdummy(mp)) {  /* main position is taken? */
@@ -451,7 +451,7 @@ const TValue *luaH_getint (Table *t, int key) {
     lua_Number nk = cast_num(key);
     Node *n = hashnum(t, nk);
     do {  /* check whether `key' is somewhere in the chain */
-      if (ttisnumber(gkey(n)) && luai_numeq(nvalue(gkey(n)), nk))
+      if ((gkey(n))->is_number() && luai_numeq(nvalue(gkey(n)), nk))
         return gval(n);  /* that's it */
       else n = gnext(n);
     } while (n);

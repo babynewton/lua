@@ -107,7 +107,7 @@ typedef union Value Value;
 
 #define TValuefields	Value value_; int tt_
 
-typedef struct lua_TValue TValue;
+typedef class lua_TValue TValue;
 
 
 /* macro defining a nil value */
@@ -134,7 +134,7 @@ typedef struct lua_TValue TValue;
 /* Macros to test type */
 #define checktag(o,t)		(rttype(o) == (t))
 #define checktype(o,t)		(ttypenv(o) == (t))
-#define ttisnumber(o)		checktag((o), LUA_TNUMBER)
+//#define ttisnumber(o)		checktag((o), LUA_TNUMBER)
 #define ttisnil(o)		checktag((o), LUA_TNIL)
 #define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
 #define ttislightuserdata(o)	checktag((o), LUA_TLIGHTUSERDATA)
@@ -398,8 +398,12 @@ union Value {
 };
 
 
-struct lua_TValue {
+class lua_TValue {
+ private:
+  inline const bool check_tag(int type) { return (tt_ == type); }
+ public:
   TValuefields;
+  inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
 };
 
 
