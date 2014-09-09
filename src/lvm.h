@@ -13,7 +13,7 @@
 #include "ltm.h"
 
 
-#define tostring(L,o) (ttisstring(o) || (luaV_tostring(L, o)))
+#define tostring(L,o) (((TValue*)(o))->is_string() || (luaV_tostring(L, o)))
 
 #define tonumber(o,n)	((((TValue*)(o))->is_number()) || (((o) = luaV_tonumber(o,n)) != NULL))
 

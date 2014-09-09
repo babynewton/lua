@@ -120,7 +120,7 @@ static void removeentry (Node *n) {
 */
 static int iscleared (global_State *g, const TValue *o) {
   if (!iscollectable(o)) return 0;
-  else if (ttisstring(o)) {
+  else if (((TValue*)o)->is_string()) {
     markobject(g, rawtsvalue(o));  /* strings are `values', so are never weak */
     return 0;
   }
@@ -435,7 +435,7 @@ static lu_mem traversetable (global_State *g, Table *h) {
   const char *weakkey, *weakvalue;
   const TValue *mode = gfasttm(g, h->metatable, TM_MODE);
   markobject(g, h->metatable);
-  if (mode && ttisstring(mode) &&  /* is there a weak mode? */
+  if (mode && ((TValue*)mode)->is_string() &&  /* is there a weak mode? */
       ((weakkey = strchr(svalue(mode), 'k')),
        (weakvalue = strchr(svalue(mode), 'v')),
        (weakkey || weakvalue))) {  /* is really weak? */
@@ -829,7 +829,7 @@ static void GCTM (lua_State *L, int propagateerrors) {
     g->gcrunning = running;  /* restore state */
     if (status != LUA_OK && propagateerrors) {  /* error while running __gc? */
       if (status == LUA_ERRRUN) {  /* is there an error object? */
-        const char *msg = (ttisstring(L->top - 1))
+        const char *msg = ((L->top - 1)->is_string())
                             ? svalue(L->top - 1)
                             : "no message";
         luaO_pushfstring(L, "error in __gc metamethod (%s)", msg);

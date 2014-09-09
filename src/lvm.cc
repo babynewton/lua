@@ -35,7 +35,7 @@
 const TValue *luaV_tonumber (const TValue *obj, TValue *n) {
   lua_Number num;
   if (((TValue*)obj)->is_number()) return obj;
-  if (ttisstring(obj) && luaO_str2d(svalue(obj), tsvalue(obj)->len, &num)) {
+  if (((TValue*)obj)->is_string() && luaO_str2d(svalue(obj), tsvalue(obj)->len, &num)) {
     setnvalue(n, num);
     return n;
   }
@@ -232,7 +232,7 @@ int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
   int res;
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numlt(L, nvalue(l), nvalue(r));
-  else if (ttisstring(l) && ttisstring(r))
+  else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) < 0;
   else if ((res = call_orderTM(L, l, r, TM_LT)) < 0)
     luaG_ordererror(L, l, r);
@@ -244,7 +244,7 @@ int luaV_lessequal (lua_State *L, const TValue *l, const TValue *r) {
   int res;
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numle(L, nvalue(l), nvalue(r));
-  else if (ttisstring(l) && ttisstring(r))
+  else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) <= 0;
   else if ((res = call_orderTM(L, l, r, TM_LE)) >= 0)  /* first try `le' */
     return res;
@@ -295,13 +295,13 @@ void luaV_concat (lua_State *L, int total) {
   do {
     StkId top = L->top;
     int n = 2;  /* number of elements handled in this pass (at least 2) */
-    if (!(ttisstring(top-2) || (top-2)->is_number()) || !tostring(L, top-1)) {
+    if (!((top-2)->is_string() || (top-2)->is_number()) || !tostring(L, top-1)) {
       if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT))
         luaG_concaterror(L, top-2, top-1);
     }
     else if (tsvalue(top-1)->len == 0)  /* second operand is empty? */
       (void)tostring(L, top - 2);  /* result is first operand */
-    else if (ttisstring(top-2) && tsvalue(top-2)->len == 0) {
+    else if ((top-2)->is_string() && tsvalue(top-2)->len == 0) {
       setobjs2s(L, top - 2, top - 1);  /* result is second op. */
     }
     else {

@@ -138,7 +138,7 @@ typedef class lua_TValue TValue;
 //#define ttisnil(o)		checktag((o), LUA_TNIL)
 //#define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
 //#define ttislightuserdata(o)	checktag((o), LUA_TLIGHTUSERDATA)
-#define ttisstring(o)		checktype((o), LUA_TSTRING)
+//#define ttisstring(o)		checktype((o), LUA_TSTRING)
 #define ttisshrstring(o)	checktag((o), ctb(LUA_TSHRSTR))
 #define ttislngstring(o)	checktag((o), ctb(LUA_TLNGSTR))
 #define ttistable(o)		checktag((o), ctb(LUA_TTABLE))
@@ -401,12 +401,14 @@ union Value {
 class lua_TValue {
  private:
   inline const bool check_tag(int type) { return (tt_ == type); }
+  inline const bool check_type(int type) { return (novariant(tt_) == type); }
  public:
   TValuefields;
   inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
   inline const bool is_nil(void) { return check_tag(LUA_TNIL); }
   inline const bool is_boolean(void) { return check_tag(LUA_TBOOLEAN); }
   inline const bool is_light_userdata(void) { return check_tag(LUA_TLIGHTUSERDATA); }
+  inline const bool is_string(void) { return check_type(LUA_TSTRING); }
 };
 
 
