@@ -467,7 +467,7 @@ const TValue *luaH_getstr (Table *t, TString *key) {
   Node *n = hashstr(t, key);
   lua_assert(key->tt == LUA_TSHRSTR);
   do {  /* check whether `key' is somewhere in the chain */
-    if (ttisshrstring(gkey(n)) && eqshrstr(rawtsvalue(gkey(n)), key))
+    if (gkey(n)->is_shr_string() && eqshrstr(rawtsvalue(gkey(n)), key))
       return gval(n);  /* that's it */
     else n = gnext(n);
   } while (n);
