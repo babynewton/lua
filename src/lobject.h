@@ -143,7 +143,7 @@ typedef class lua_TValue TValue;
 //#define ttislngstring(o)	checktag((o), ctb(LUA_TLNGSTR))
 //#define ttistable(o)		checktag((o), ctb(LUA_TTABLE))
 //#define ttisfunction(o)		checktype(o, LUA_TFUNCTION)
-#define ttisclosure(o)		((rttype(o) & 0x1F) == LUA_TFUNCTION)
+//#define ttisclosure(o)		((rttype(o) & 0x1F) == LUA_TFUNCTION)
 #define ttisCclosure(o)		checktag((o), ctb(LUA_TCCL))
 #define ttisLclosure(o)		checktag((o), ctb(LUA_TLCL))
 #define ttislcf(o)		checktag((o), LUA_TLCF)
@@ -412,6 +412,7 @@ class lua_TValue {
   inline const bool is_shr_string(void) { return check_tag(ctb(LUA_TSHRSTR)); }
   inline const bool is_table(void) { return check_tag(ctb(LUA_TTABLE)); }
   inline const bool is_function(void) { return check_type(LUA_TFUNCTION); }
+  inline const bool is_closure(void) { return (tt_ & 0x1F) == LUA_TFUNCTION; }
 };
 
 
