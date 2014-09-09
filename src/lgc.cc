@@ -814,7 +814,7 @@ static void GCTM (lua_State *L, int propagateerrors) {
   TValue v;
   setgcovalue(L, &v, udata2finalize(g));
   tm = luaT_gettmbyobj(L, &v, TM_GC);
-  if (tm != NULL && ttisfunction(tm)) {  /* is there a finalizer? */
+  if (tm != NULL && ((TValue*)tm)->is_function()) {  /* is there a finalizer? */
     int status;
     lu_byte oldah = L->allowhook;
     int running  = g->gcrunning;

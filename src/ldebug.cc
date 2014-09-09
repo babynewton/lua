@@ -272,14 +272,14 @@ LUA_API int lua_getinfo (lua_State *L, const char *what, lua_Debug *ar) {
   if (*what == '>') {
     ci = NULL;
     func = L->top - 1;
-    api_check(L, ttisfunction(func), "function expected");
+    api_check(L, func->is_function(), "function expected");
     what++;  /* skip the '>' */
     L->top--;  /* pop function */
   }
   else {
     ci = ar->i_ci;
     func = ci->func;
-    lua_assert(ttisfunction(ci->func));
+    lua_assert(ci->func->is_function());
   }
   cl = ttisclosure(func) ? clvalue(func) : NULL;
   status = auxgetinfo(L, what, ar, cl, ci);
@@ -573,7 +573,7 @@ static void addinfo (lua_State *L, const char *msg) {
 l_noret luaG_errormsg (lua_State *L) {
   if (L->errfunc != 0) {  /* is there an error handling function? */
     StkId errfunc = restorestack(L, L->errfunc);
-    if (!ttisfunction(errfunc)) luaD_throw(L, LUA_ERRERR);
+    if (!errfunc->is_function()) luaD_throw(L, LUA_ERRERR);
     setobjs2s(L, L->top, L->top - 1);  /* move argument */
     setobjs2s(L, L->top - 1, errfunc);  /* push function */
     L->top++;

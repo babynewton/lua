@@ -123,7 +123,7 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     }
     else if (((TValue*)(tm = luaT_gettmbyobj(L, t, TM_INDEX)))->is_nil())
       luaG_typeerror(L, t, "index");
-    if (ttisfunction(tm)) {
+    if (((TValue*)tm)->is_function()) {
       callTM(L, tm, t, key, val, 1);
       return;
     }
@@ -162,7 +162,7 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       if (((TValue*)(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))->is_nil())
         luaG_typeerror(L, t, "index");
     /* there is a metamethod */
-    if (ttisfunction(tm)) {
+    if (((TValue*)tm)->is_function()) {
       callTM(L, tm, t, key, val, 0);
       return;
     }
