@@ -140,7 +140,7 @@ typedef class lua_TValue TValue;
 //#define ttislightuserdata(o)	checktag((o), LUA_TLIGHTUSERDATA)
 //#define ttisstring(o)		checktype((o), LUA_TSTRING)
 //#define ttisshrstring(o)	checktag((o), ctb(LUA_TSHRSTR))
-#define ttislngstring(o)	checktag((o), ctb(LUA_TLNGSTR))
+//#define ttislngstring(o)	checktag((o), ctb(LUA_TLNGSTR))
 #define ttistable(o)		checktag((o), ctb(LUA_TTABLE))
 #define ttisfunction(o)		checktype(o, LUA_TFUNCTION)
 #define ttisclosure(o)		((rttype(o) & 0x1F) == LUA_TFUNCTION)
