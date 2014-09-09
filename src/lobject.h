@@ -136,7 +136,7 @@ typedef class lua_TValue TValue;
 #define checktype(o,t)		(ttypenv(o) == (t))
 //#define ttisnumber(o)		checktag((o), LUA_TNUMBER)
 //#define ttisnil(o)		checktag((o), LUA_TNIL)
-#define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
+//#define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
 #define ttislightuserdata(o)	checktag((o), LUA_TLIGHTUSERDATA)
 #define ttisstring(o)		checktype((o), LUA_TSTRING)
 #define ttisshrstring(o)	checktag((o), ctb(LUA_TSHRSTR))
@@ -171,7 +171,7 @@ typedef class lua_TValue TValue;
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
 
-#define l_isfalse(o)	((((TValue*)(o))->is_nil()) || (ttisboolean(o) && bvalue(o) == 0))
+#define l_isfalse(o)	((((TValue*)(o))->is_nil()) || ((((TValue*)(o))->is_boolean()) && bvalue(o) == 0))
 
 
 #define iscollectable(o)	(rttype(o) & BIT_ISCOLLECTABLE)
@@ -405,6 +405,7 @@ class lua_TValue {
   TValuefields;
   inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
   inline const bool is_nil(void) { return check_tag(LUA_TNIL); }
+  inline const bool is_boolean(void) { return check_tag(LUA_TBOOLEAN); }
 };
 
 
