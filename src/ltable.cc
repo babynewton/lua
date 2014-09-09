@@ -143,7 +143,7 @@ static int arrayindex (const TValue *key) {
 */
 static int findindex (lua_State *L, Table *t, StkId key) {
   int i;
-  if (ttisnil(key)) return -1;  /* first iteration */
+  if (key->is_nil()) return -1;  /* first iteration */
   i = arrayindex(key);
   if (0 < i && i <= t->sizearray)  /* is `key' inside array part? */
     return i-1;  /* yes; that's the index (corrected to C) */
@@ -169,14 +169,14 @@ static int findindex (lua_State *L, Table *t, StkId key) {
 int luaH_next (lua_State *L, Table *t, StkId key) {
   int i = findindex(L, t, key);  /* find original element */
   for (i++; i < t->sizearray; i++) {  /* try first array part */
-    if (!ttisnil(&t->array[i])) {  /* a non-nil value? */
+    if (!(&t->array[i])->is_nil()) {  /* a non-nil value? */
       setnvalue(key, cast_num(i+1));
       setobj2s(L, key+1, &t->array[i]);
       return 1;
     }
   }
   for (i -= t->sizearray; i < sizenode(t); i++) {  /* then hash part */
-    if (!ttisnil(gval(gnode(t, i)))) {  /* a non-nil value? */
+    if (!(gval(gnode(t, i)))->is_nil()) {  /* a non-nil value? */
       setobj2s(L, key, gkey(gnode(t, i)));
       setobj2s(L, key+1, gval(gnode(t, i)));
       return 1;
@@ -241,7 +241,7 @@ static int numusearray (const Table *t, int *nums) {
     }
     /* count elements in range (2^(lg-1), 2^lg] */
     for (; i <= lim; i++) {
-      if (!ttisnil(&t->array[i-1]))
+      if (!(&t->array[i-1])->is_nil())
         lc++;
     }
     nums[lg] += lc;
@@ -257,7 +257,7 @@ static int numusehash (const Table *t, int *nums, int *pnasize) {
   int i = sizenode(t);
   while (i--) {
     Node *n = &t->node[i];
-    if (!ttisnil(gval(n))) {
+    if (!(gval(n))->is_nil()) {
       ause += countint(gkey(n), nums);
       totaluse++;
     }
@@ -314,7 +314,7 @@ void luaH_resize (lua_State *L, Table *t, int nasize, int nhsize) {
     t->sizearray = nasize;
     /* re-insert elements from vanishing slice */
     for (i=nasize; i<oldasize; i++) {
-      if (!ttisnil(&t->array[i]))
+      if (!(&t->array[i])->is_nil())
         luaH_setint(L, t, i + 1, &t->array[i]);
     }
     /* shrink array */
@@ -323,7 +323,7 @@ void luaH_resize (lua_State *L, Table *t, int nasize, int nhsize) {
   /* re-insert elements from hash part */
   for (i = twoto(oldhsize) - 1; i >= 0; i--) {
     Node *old = nold+i;
-    if (!ttisnil(gval(old))) {
+    if (!(gval(old))->is_nil()) {
       /* doesn't need barrier/invalidate cache, as entry was
          already present in the table */
       setobjt2t(L, luaH_set(L, t, gkey(old)), gval(old));
@@ -387,7 +387,7 @@ void luaH_free (lua_State *L, Table *t) {
 static Node *getfreepos (Table *t) {
   while (t->lastfree > t->node) {
     t->lastfree--;
-    if (ttisnil(gkey(t->lastfree)))
+    if (gkey(t->lastfree)->is_nil())
       return t->lastfree;
   }
   return NULL;  /* could not find a free place */
@@ -404,11 +404,11 @@ static Node *getfreepos (Table *t) {
 */
 TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
   Node *mp;
-  if (ttisnil(key)) luaG_runerror(L, "table index is nil");
+  if (((TValue*)key)->is_nil()) luaG_runerror(L, "table index is nil");
   else if (((TValue*)key)->is_number() && luai_numisnan(L, nvalue(key)))
     luaG_runerror(L, "table index is NaN");
   mp = mainposition(t, key);
-  if (!ttisnil(gval(mp)) || isdummy(mp)) {  /* main position is taken? */
+  if (!gval(mp)->is_nil() || isdummy(mp)) {  /* main position is taken? */
     Node *othern;
     Node *n = getfreepos(t);  /* get a free place */
     if (n == NULL) {  /* cannot find a free place? */
@@ -435,7 +435,7 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
   }
   setobj2t(L, gkey(mp), key);
   luaC_barrierback(L, obj2gco(t), key);
-  lua_assert(ttisnil(gval(mp)));
+  lua_assert(gval(mp)->is_nil());
   return gval(mp);
 }
 
@@ -533,20 +533,20 @@ static int unbound_search (Table *t, unsigned int j) {
   unsigned int i = j;  /* i is zero or a present index */
   j++;
   /* find `i' and `j' such that i is present and j is not */
-  while (!ttisnil(luaH_getint(t, j))) {
+  while (!((TValue*)luaH_getint(t, j))->is_nil()) {
     i = j;
     j *= 2;
     if (j > cast(unsigned int, MAX_INT)) {  /* overflow? */
       /* table was built with bad purposes: resort to linear search */
       i = 1;
-      while (!ttisnil(luaH_getint(t, i))) i++;
+      while (!((TValue*)luaH_getint(t, i))->is_nil()) i++;
       return i - 1;
     }
   }
   /* now do a binary search between them */
   while (j - i > 1) {
     unsigned int m = (i+j)/2;
-    if (ttisnil(luaH_getint(t, m))) j = m;
+    if (((TValue*)luaH_getint(t, m))->is_nil()) j = m;
     else i = m;
   }
   return i;
@@ -559,12 +559,12 @@ static int unbound_search (Table *t, unsigned int j) {
 */
 int luaH_getn (Table *t) {
   unsigned int j = t->sizearray;
-  if (j > 0 && ttisnil(&t->array[j - 1])) {
+  if (j > 0 && (&t->array[j - 1])->is_nil()) {
     /* there is a boundary in the array part: (binary) search for it */
     unsigned int i = 0;
     while (j - i > 1) {
       unsigned int m = (i+j)/2;
-      if (ttisnil(&t->array[m - 1])) j = m;
+      if ((&t->array[m - 1])->is_nil()) j = m;
       else i = m;
     }
     return i;

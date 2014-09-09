@@ -65,7 +65,7 @@
 
 #define isfinalized(x)		testbit(gch(x)->marked, FINALIZEDBIT)
 
-#define checkdeadkey(n)	lua_assert(!ttisdeadkey(gkey(n)) || ttisnil(gval(n)))
+#define checkdeadkey(n)	lua_assert(!ttisdeadkey(gkey(n)) || ((gval(n))->is_nil()))
 
 
 #define checkconsistency(obj)  \
@@ -105,7 +105,7 @@ static void reallymarkobject (global_State *g, GCObject *o);
 ** from the table)
 */
 static void removeentry (Node *n) {
-  lua_assert(ttisnil(gval(n)));
+  lua_assert(gval(n)->is_nil());
   if (valiswhite(gkey(n)))
     setdeadvalue(gkey(n));  /* unused and unmarked key; remove it */
 }
@@ -359,10 +359,10 @@ static void traverseweakvalue (global_State *g, Table *h) {
   int hasclears = (h->sizearray > 0);
   for (n = gnode(h, 0); n < limit; n++) {
     checkdeadkey(n);
-    if (ttisnil(gval(n)))  /* entry is empty? */
+    if (gval(n)->is_nil())  /* entry is empty? */
       removeentry(n);  /* remove it */
     else {
-      lua_assert(!ttisnil(gkey(n)));
+      lua_assert(!gkey(n)->is_nil());
       markvalue(g, gkey(n));  /* mark key */
       if (!hasclears && iscleared(g, gval(n)))  /* is there a white value? */
         hasclears = 1;  /* table will have to be cleared */
@@ -391,7 +391,7 @@ static int traverseephemeron (global_State *g, Table *h) {
   /* traverse hash part */
   for (n = gnode(h, 0); n < limit; n++) {
     checkdeadkey(n);
-    if (ttisnil(gval(n)))  /* entry is empty? */
+    if (gval(n)->is_nil())  /* entry is empty? */
       removeentry(n);  /* remove it */
     else if (iscleared(g, gkey(n))) {  /* key is not marked (yet)? */
       hasclears = 1;  /* table must be cleared */
@@ -420,10 +420,10 @@ static void traversestrongtable (global_State *g, Table *h) {
     markvalue(g, &h->array[i]);
   for (n = gnode(h, 0); n < limit; n++) {  /* traverse hash part */
     checkdeadkey(n);
-    if (ttisnil(gval(n)))  /* entry is empty? */
+    if (gval(n)->is_nil())  /* entry is empty? */
       removeentry(n);  /* remove it */
     else {
-      lua_assert(!ttisnil(gkey(n)));
+      lua_assert(!gkey(n)->is_nil());
       markvalue(g, gkey(n));  /* mark key */
       markvalue(g, gval(n));  /* mark value */
     }
@@ -627,7 +627,7 @@ static void clearkeys (global_State *g, GCObject *l, GCObject *f) {
     Table *h = gco2t(l);
     Node *n, *limit = gnodelast(h);
     for (n = gnode(h, 0); n < limit; n++) {
-      if (!ttisnil(gval(n)) && (iscleared(g, gkey(n)))) {
+      if (!gval(n)->is_nil() && (iscleared(g, gkey(n)))) {
         setnilvalue(gval(n));  /* remove value ... */
         removeentry(n);  /* and remove entry from table */
       }
@@ -651,7 +651,7 @@ static void clearvalues (global_State *g, GCObject *l, GCObject *f) {
         setnilvalue(o);  /* remove value */
     }
     for (n = gnode(h, 0); n < limit; n++) {
-      if (!ttisnil(gval(n)) && iscleared(g, gval(n))) {
+      if (!gval(n)->is_nil() && iscleared(g, gval(n))) {
         setnilvalue(gval(n));  /* remove value ... */
         removeentry(n);  /* and remove entry from table */
       }

@@ -114,14 +114,14 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     if (ttistable(t)) {  /* `t' is a table? */
       Table *h = hvalue(t);
       const TValue *res = luaH_get(h, key); /* do a primitive get */
-      if (!ttisnil(res) ||  /* result is not nil? */
+      if (!((TValue*)res)->is_nil() ||  /* result is not nil? */
           (tm = fasttm(L, h->metatable, TM_INDEX)) == NULL) { /* or no TM? */
         setobj2s(L, val, res);
         return;
       }
       /* else will try the tag method */
     }
-    else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_INDEX)))
+    else if (((TValue*)(tm = luaT_gettmbyobj(L, t, TM_INDEX)))->is_nil())
       luaG_typeerror(L, t, "index");
     if (ttisfunction(tm)) {
       callTM(L, tm, t, key, val, 1);
@@ -142,7 +142,7 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       TValue *oldval = cast(TValue *, luaH_get(h, key));
       /* if previous value is not nil, there must be a previous entry
          in the table; moreover, a metamethod has no relevance */
-      if (!ttisnil(oldval) ||
+      if (!oldval->is_nil() ||
          /* previous value is nil; must check the metamethod */
          ((tm = fasttm(L, h->metatable, TM_NEWINDEX)) == NULL &&
          /* no metamethod; is there a previous entry in the table? */
@@ -159,7 +159,7 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       /* else will try the metamethod */
     }
     else  /* not a table; check metamethod */
-      if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))
+      if (((TValue*)(tm = luaT_gettmbyobj(L, t, TM_NEWINDEX)))->is_nil())
         luaG_typeerror(L, t, "index");
     /* there is a metamethod */
     if (ttisfunction(tm)) {
@@ -175,9 +175,9 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
 static int call_binTM (lua_State *L, const TValue *p1, const TValue *p2,
                        StkId res, TMS event) {
   const TValue *tm = luaT_gettmbyobj(L, p1, event);  /* try first operand */
-  if (ttisnil(tm))
+  if (((TValue*)tm)->is_nil())
     tm = luaT_gettmbyobj(L, p2, event);  /* try second operand */
-  if (ttisnil(tm)) return 0;
+  if (((TValue*)tm)->is_nil()) return 0;
   callTM(L, tm, p1, p2, res, 1);
   return 1;
 }
@@ -348,7 +348,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
     }
     default: {  /* try metamethod */
       tm = luaT_gettmbyobj(L, rb, TM_LEN);
-      if (ttisnil(tm))  /* no metamethod? */
+      if (((TValue*)tm)->is_nil())  /* no metamethod? */
         luaG_typeerror(L, rb, "get length of");
       break;
     }
@@ -438,7 +438,7 @@ void luaV_finishOp (lua_State *L) {
       /* metamethod should not be called when operand is K */
       lua_assert(!ISK(GETARG_B(inst)));
       if (op == OP_LE &&  /* "<=" using "<" instead? */
-          ttisnil(luaT_gettmbyobj(L, base + GETARG_B(inst), TM_LE)))
+          ((TValue*)luaT_gettmbyobj(L, base + GETARG_B(inst), TM_LE))->is_nil())
         res = !res;  /* invert result */
       lua_assert(GET_OPCODE(*ci->u.l.savedpc) == OP_JMP);
       if (res != GETARG_A(inst))  /* condition failed? */
@@ -803,7 +803,7 @@ void luaV_execute (lua_State *L) {
       )
       vmcase(OP_TFORLOOP,
         l_tforloop:
-        if (!ttisnil(ra + 1)) {  /* continue loop? */
+        if (!(ra + 1)->is_nil()) {  /* continue loop? */
           setobjs2s(L, ra, ra + 1);  /* save control variable */
            ci->u.l.savedpc += GETARG_sBx(i);  /* jump back */
         }
