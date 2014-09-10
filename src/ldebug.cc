@@ -281,7 +281,7 @@ LUA_API int lua_getinfo (lua_State *L, const char *what, lua_Debug *ar) {
     func = ci->func;
     lua_assert(ci->func->is_function());
   }
-  cl = (func->is_closure()) ? clvalue(func) : NULL;
+  cl = (func->is_closure()) ? func->to_closure() : NULL;
   status = auxgetinfo(L, what, ar, cl, ci);
   if (strchr(what, 'f')) {
     setobjs2s(L, L->top, func);
