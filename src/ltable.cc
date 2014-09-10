@@ -153,7 +153,7 @@ static int findindex (lua_State *L, Table *t, StkId key) {
       /* key may be dead already, but it is ok to use it in `next' */
       if (luaV_rawequalobj(gkey(n), key) ||
             ((gkey(n)->is_deadkey()) && key->is_collectable() &&
-             deadvalue(gkey(n)) == key->to_gc())) {
+             (gkey(n))->to_deadkey() == key->to_gc())) {
         i = cast_int(n - gnode(t, 0));  /* key index in hash table */
         /* hash elements are numbered after array ones */
         return i + t->sizearray;
