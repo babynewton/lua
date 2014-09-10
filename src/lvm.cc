@@ -269,9 +269,9 @@ int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_TSHRSTR: return eqshrstr(((TValue*)t1)->to_string(), ((TValue*)t2)->to_string());
     case LUA_TLNGSTR: return luaS_eqlngstr(((TValue*)t1)->to_string(), ((TValue*)t2)->to_string());
     case LUA_TUSERDATA: {
-      if (uvalue(t1) == uvalue(t2)) return 1;
+      if (((TValue*)t1)->to_userdata() == ((TValue*)t2)->to_userdata()) return 1;
       else if (L == NULL) return 0;
-      tm = get_equalTM(L, uvalue(t1)->metatable, uvalue(t2)->metatable, TM_EQ);
+      tm = get_equalTM(L, ((TValue*)t1)->to_userdata()->metatable, ((TValue*)t2)->to_userdata()->metatable, TM_EQ);
       break;  /* will try TM */
     }
     case LUA_TTABLE: {

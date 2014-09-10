@@ -161,8 +161,8 @@ typedef class lua_TValue TValue;
 //#define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
 //#define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(val_(o).gc))
 //#define tsvalue(o)	(rawtsvalue(o))
-#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(val_(o).gc))
-#define uvalue(o)	(rawuvalue(o))
+//#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(val_(o).gc))
+//#define uvalue(o)	(rawuvalue(o))
 #define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(val_(o).gc))
 #define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
 #define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
@@ -400,6 +400,7 @@ union Value {
 };
 
 class TString;
+class Udata;
 
 class lua_TValue {
  private:
@@ -427,6 +428,7 @@ class lua_TValue {
   inline GCObject* to_gc(void) { return check_exp(is_collectable(), value_.gc); }
   inline void* to_p(void) { return check_exp(is_light_userdata(), value_.p); }
   inline TString* to_string(void) { return check_exp(is_string(), (TString*)(value_.gc)); }
+  inline Udata* to_userdata(void) { return check_exp(is_userdata(), (Udata*)(value_.gc)); }
 };
 
 

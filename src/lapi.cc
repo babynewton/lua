@@ -415,7 +415,7 @@ LUA_API size_t lua_rawlen (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
   switch (ttypenv(o)) {
     case LUA_TSTRING: return o->to_string()->len;
-    case LUA_TUSERDATA: return uvalue(o)->len;
+    case LUA_TUSERDATA: return o->to_userdata()->len;
     case LUA_TTABLE: return luaH_getn(hvalue(o));
     default: return 0;
   }
@@ -434,7 +434,7 @@ LUA_API lua_CFunction lua_tocfunction (lua_State *L, int idx) {
 LUA_API void *lua_touserdata (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
   switch (ttypenv(o)) {
-    case LUA_TUSERDATA: return (rawuvalue(o) + 1);
+    case LUA_TUSERDATA: return (o->to_userdata() + 1);
     case LUA_TLIGHTUSERDATA: return o->to_p();
     default: return NULL;
   }
@@ -701,7 +701,7 @@ LUA_API int lua_getmetatable (lua_State *L, int objindex) {
       mt = hvalue(obj)->metatable;
       break;
     case LUA_TUSERDATA:
-      mt = uvalue(obj)->metatable;
+      mt = ((TValue*)obj)->to_userdata()->metatable;
       break;
     default:
       mt = G(L)->mt[ttypenv(obj)];
@@ -724,8 +724,8 @@ LUA_API void lua_getuservalue (lua_State *L, int idx) {
   lua_lock(L);
   o = index2addr(L, idx);
   api_check(L, ttisuserdata(o), "userdata expected");
-  if (uvalue(o)->env) {
-    sethvalue(L, L->top, uvalue(o)->env);
+  if (o->to_userdata()->env) {
+    sethvalue(L, L->top, o->to_userdata()->env);
   } else
     setnilvalue(L->top);
   api_incr_top(L);
@@ -838,9 +838,9 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
       break;
     }
     case LUA_TUSERDATA: {
-      uvalue(obj)->metatable = mt;
+      obj->to_userdata()->metatable = mt;
       if (mt) {
-        luaC_objbarrier(L, rawuvalue(obj), mt);
+        luaC_objbarrier(L, obj->to_userdata(), mt);
         luaC_checkfinalizer(L, obj->to_gc(), mt);
       }
       break;
@@ -863,10 +863,10 @@ LUA_API void lua_setuservalue (lua_State *L, int idx) {
   o = index2addr(L, idx);
   api_check(L, ttisuserdata(o), "userdata expected");
   if ((L->top - 1)->is_nil())
-    uvalue(o)->env = NULL;
+    o->to_userdata()->env = NULL;
   else {
     api_check(L, ttistable(L->top - 1), "table expected");
-    uvalue(o)->env = hvalue(L->top - 1);
+    o->to_userdata()->env = hvalue(L->top - 1);
     luaC_objbarrier(L, o->to_gc(), hvalue(L->top - 1));
   }
   L->top--;
