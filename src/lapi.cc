@@ -286,7 +286,7 @@ LUA_API int lua_isstring (lua_State *L, int idx) {
 
 LUA_API int lua_isuserdata (lua_State *L, int idx) {
   const TValue *o = index2addr(L, idx);
-  return (ttisuserdata(o) || ((TValue*)o)->is_light_userdata());
+  return (((TValue*)o)->is_userdata() || ((TValue*)o)->is_light_userdata());
 }
 
 

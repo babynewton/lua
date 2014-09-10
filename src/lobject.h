@@ -147,7 +147,7 @@ typedef class lua_TValue TValue;
 //#define ttisCclosure(o)		checktag((o), ctb(LUA_TCCL))
 //#define ttisLclosure(o)		checktag((o), ctb(LUA_TLCL))
 //#define ttislcf(o)		checktag((o), LUA_TLCF)
-#define ttisuserdata(o)		checktag((o), ctb(LUA_TUSERDATA))
+//#define ttisuserdata(o)		checktag((o), ctb(LUA_TUSERDATA))
 #define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
 #define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
 
