@@ -113,7 +113,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
     case LUA_TLIGHTUSERDATA:
       return hashpointer(t, ((TValue*)key)->to_light_userdata());
     case LUA_TLCF:
-      return hashpointer(t, fvalue(key));
+      return hashpointer(t, ((TValue*)key)->to_lcf());
     default:
       return hashpointer(t, ((TValue*)key)->to_gc());
   }

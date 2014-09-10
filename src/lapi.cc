@@ -424,7 +424,7 @@ LUA_API size_t lua_rawlen (lua_State *L, int idx) {
 
 LUA_API lua_CFunction lua_tocfunction (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  if (o->is_lcf()) return fvalue(o);
+  if (o->is_lcf()) return o->to_lcf();
   else if (o->is_c_closure())
     return (o)->to_c_closure()->f;
   else return NULL;  /* not a C function */
@@ -453,7 +453,7 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
     case LUA_TTABLE: return hvalue(o);
     case LUA_TLCL: return o->to_l_closure();
     case LUA_TCCL: return o->to_c_closure();
-    case LUA_TLCF: return cast(void *, cast(size_t, fvalue(o)));
+    case LUA_TLCF: return cast(void *, cast(size_t, o->to_lcf()));
     case LUA_TTHREAD: return thvalue(o);
     case LUA_TUSERDATA:
     case LUA_TLIGHTUSERDATA:
