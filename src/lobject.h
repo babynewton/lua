@@ -144,9 +144,9 @@ typedef class lua_TValue TValue;
 //#define ttistable(o)		checktag((o), ctb(LUA_TTABLE))
 //#define ttisfunction(o)		checktype(o, LUA_TFUNCTION)
 //#define ttisclosure(o)		((rttype(o) & 0x1F) == LUA_TFUNCTION)
-#define ttisCclosure(o)		checktag((o), ctb(LUA_TCCL))
-#define ttisLclosure(o)		checktag((o), ctb(LUA_TLCL))
-#define ttislcf(o)		checktag((o), LUA_TLCF)
+//#define ttisCclosure(o)		checktag((o), ctb(LUA_TCCL))
+//#define ttisLclosure(o)		checktag((o), ctb(LUA_TLCL))
+//#define ttislcf(o)		checktag((o), LUA_TLCF)
 #define ttisuserdata(o)		checktag((o), ctb(LUA_TUSERDATA))
 #define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
 #define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
@@ -413,6 +413,12 @@ class lua_TValue {
   inline const bool is_table(void) { return check_tag(ctb(LUA_TTABLE)); }
   inline const bool is_function(void) { return check_type(LUA_TFUNCTION); }
   inline const bool is_closure(void) { return (tt_ & 0x1F) == LUA_TFUNCTION; }
+  inline const bool is_c_closure(void) { return check_tag(ctb(LUA_TCCL)); }
+  inline const bool is_l_closure(void) { return check_tag(ctb(LUA_TLCL)); }
+  inline const bool is_lcf(void) { return check_type(LUA_TLCF); }
+  inline const bool is_userdata(void) { return check_tag(ctb(LUA_TUSERDATA)); }
+  inline const bool is_thread(void) { return check_tag(ctb(LUA_TTHREAD)); }
+  inline const bool is_deadkey(void) { return check_type(LUA_TDEADKEY); }
 };
 
 
@@ -546,7 +552,7 @@ class LClosure : public Closure {
 };
 
 
-#define isLfunction(o)	ttisLclosure(o)
+//#define isLfunction(o)	ttisLclosure(o)
 
 #define getproto(o)	(clLvalue(o)->p)
 

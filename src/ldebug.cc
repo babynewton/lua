@@ -145,7 +145,7 @@ LUA_API const char *lua_getlocal (lua_State *L, const lua_Debug *ar, int n) {
   const char *name;
   lua_lock(L);
   if (ar == NULL) {  /* information about non-active function? */
-    if (!isLfunction(L->top - 1))  /* not a Lua function? */
+    if (!(L->top - 1)->is_l_closure())  /* not a Lua function? */
       name = NULL;
     else  /* consider live variables at function start (parameters) */
       name = luaF_getlocalname(clLvalue(L->top - 1)->p, n, 0);

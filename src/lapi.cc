@@ -69,7 +69,7 @@ static TValue *index2addr (lua_State *L, int idx) {
   else {  /* upvalues */
     idx = LUA_REGISTRYINDEX - idx;
     api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
-    if (ttislcf(ci->func))  /* light C function? */
+    if (ci->func->is_lcf())  /* light C function? */
       return NONVALIDVALUE;  /* it has no upvalues */
     else {
       CClosure *func = clCvalue(ci->func);
@@ -267,7 +267,7 @@ LUA_API const char *lua_typename (lua_State *L, int t) {
 
 LUA_API int lua_iscfunction (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  return (ttislcf(o) || (ttisCclosure(o)));
+  return (o->is_lcf() || (o->is_c_closure()));
 }
 
 
@@ -424,8 +424,8 @@ LUA_API size_t lua_rawlen (lua_State *L, int idx) {
 
 LUA_API lua_CFunction lua_tocfunction (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  if (ttislcf(o)) return fvalue(o);
-  else if (ttisCclosure(o))
+  if (o->is_lcf()) return fvalue(o);
+  else if (o->is_c_closure())
     return clCvalue(o)->f;
   else return NULL;  /* not a C function */
 }
@@ -1002,7 +1002,7 @@ LUA_API int lua_dump (lua_State *L, lua_Writer writer, void *data) {
   lua_lock(L);
   api_checknelems(L, 1);
   o = L->top - 1;
-  if (isLfunction(o))
+  if (o->is_l_closure())
     status = luaU_dump(L, getproto(o), writer, data, 0);
   else
     status = 1;
