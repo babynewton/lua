@@ -435,7 +435,7 @@ LUA_API void *lua_touserdata (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
   switch (ttypenv(o)) {
     case LUA_TUSERDATA: return (o->to_userdata() + 1);
-    case LUA_TLIGHTUSERDATA: return o->to_p();
+    case LUA_TLIGHTUSERDATA: return o->to_light_userdata();
     default: return NULL;
   }
 }

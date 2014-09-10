@@ -426,7 +426,7 @@ class lua_TValue {
   inline const bool is_deadkey(void) { return check_type(LUA_TDEADKEY); }
   inline const lua_Number to_number(void) { return check_exp(is_number(), value_.n); }
   inline GCObject* to_gc(void) { return check_exp(is_collectable(), value_.gc); }
-  inline void* to_p(void) { return check_exp(is_light_userdata(), value_.p); }
+  inline void* to_light_userdata(void) { return check_exp(is_light_userdata(), value_.p); }
   inline TString* to_string(void) { return check_exp(is_string(), (TString*)(value_.gc)); }
   inline Udata* to_userdata(void) { return check_exp(is_userdata(), (Udata*)(value_.gc)); }
 };
