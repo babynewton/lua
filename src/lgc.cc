@@ -73,7 +73,7 @@
 
 
 #define markvalue(g,o) { checkconsistency(o); \
-  if (valiswhite(o)) reallymarkobject(g,gcvalue(o)); }
+  if (valiswhite(o)) reallymarkobject(g,(o)->to_gc()); }
 
 #define markobject(g,t) { if ((t) && iswhite(obj2gco(t))) \
 		reallymarkobject(g, obj2gco(t)); }
@@ -119,12 +119,12 @@ static void removeentry (Node *n) {
 ** being finalized, keep them in keys, but not in values
 */
 static int iscleared (global_State *g, const TValue *o) {
-  if (!iscollectable(o)) return 0;
+  if (!((TValue*)o)->is_collectable()) return 0;
   else if (((TValue*)o)->is_string()) {
     markobject(g, rawtsvalue(o));  /* strings are `values', so are never weak */
     return 0;
   }
-  else return iswhite(gcvalue(o));
+  else return iswhite(((TValue*)o)->to_gc());
 }
 
 
@@ -385,7 +385,7 @@ static int traverseephemeron (global_State *g, Table *h) {
   for (i = 0; i < h->sizearray; i++) {
     if (valiswhite(&h->array[i])) {
       marked = 1;
-      reallymarkobject(g, gcvalue(&h->array[i]));
+      reallymarkobject(g, (&h->array[i])->to_gc());
     }
   }
   /* traverse hash part */
@@ -400,7 +400,7 @@ static int traverseephemeron (global_State *g, Table *h) {
     }
     else if (valiswhite(gval(n))) {  /* value not marked yet? */
       marked = 1;
-      reallymarkobject(g, gcvalue(gval(n)));  /* mark it now */
+      reallymarkobject(g, gval(n)->to_gc());  /* mark it now */
     }
   }
   if (prop)

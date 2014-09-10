@@ -115,7 +115,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
     case LUA_TLCF:
       return hashpointer(t, fvalue(key));
     default:
-      return hashpointer(t, gcvalue(key));
+      return hashpointer(t, ((TValue*)key)->to_gc());
   }
 }
 
@@ -152,8 +152,8 @@ static int findindex (lua_State *L, Table *t, StkId key) {
     for (;;) {  /* check whether `key' is somewhere in the chain */
       /* key may be dead already, but it is ok to use it in `next' */
       if (luaV_rawequalobj(gkey(n), key) ||
-            ((gkey(n)->is_deadkey()) && iscollectable(key) &&
-             deadvalue(gkey(n)) == gcvalue(key))) {
+            ((gkey(n)->is_deadkey()) && key->is_collectable() &&
+             deadvalue(gkey(n)) == key->to_gc())) {
         i = cast_int(n - gnode(t, 0));  /* key index in hash table */
         /* hash elements are numbered after array ones */
         return i + t->sizearray;

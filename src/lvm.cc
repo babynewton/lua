@@ -282,7 +282,7 @@ int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
     }
     default:
       lua_assert(iscollectable(t1));
-      return gcvalue(t1) == gcvalue(t2);
+      return ((TValue*)t1)->to_gc() == ((TValue*)t2)->to_gc();
   }
   if (tm == NULL) return 0;  /* no TM? */
   callTM(L, tm, t1, t2, L->top, 1);  /* call TM */

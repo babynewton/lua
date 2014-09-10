@@ -782,7 +782,7 @@ LUA_API void lua_rawset (lua_State *L, int idx) {
   api_check(L, ttistable(t), "table expected");
   setobj2t(L, luaH_set(L, hvalue(t), L->top-2), L->top-1);
   invalidateTMcache(hvalue(t));
-  luaC_barrierback(L, gcvalue(t), L->top-1);
+  luaC_barrierback(L, t->to_gc(), L->top-1);
   L->top -= 2;
   lua_unlock(L);
 }
@@ -795,7 +795,7 @@ LUA_API void lua_rawseti (lua_State *L, int idx, int n) {
   t = index2addr(L, idx);
   api_check(L, ttistable(t), "table expected");
   luaH_setint(L, hvalue(t), n, L->top - 1);
-  luaC_barrierback(L, gcvalue(t), L->top-1);
+  luaC_barrierback(L, t->to_gc(), L->top-1);
   L->top--;
   lua_unlock(L);
 }
@@ -810,7 +810,7 @@ LUA_API void lua_rawsetp (lua_State *L, int idx, const void *p) {
   api_check(L, ttistable(t), "table expected");
   setpvalue(&k, cast(void *, p));
   setobj2t(L, luaH_set(L, hvalue(t), &k), L->top - 1);
-  luaC_barrierback(L, gcvalue(t), L->top - 1);
+  luaC_barrierback(L, t->to_gc(), L->top - 1);
   L->top--;
   lua_unlock(L);
 }
@@ -832,8 +832,8 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
     case LUA_TTABLE: {
       hvalue(obj)->metatable = mt;
       if (mt) {
-        luaC_objbarrierback(L, gcvalue(obj), mt);
-        luaC_checkfinalizer(L, gcvalue(obj), mt);
+        luaC_objbarrierback(L, obj->to_gc(), mt);
+        luaC_checkfinalizer(L, obj->to_gc(), mt);
       }
       break;
     }
@@ -841,7 +841,7 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
       uvalue(obj)->metatable = mt;
       if (mt) {
         luaC_objbarrier(L, rawuvalue(obj), mt);
-        luaC_checkfinalizer(L, gcvalue(obj), mt);
+        luaC_checkfinalizer(L, obj->to_gc(), mt);
       }
       break;
     }
@@ -867,7 +867,7 @@ LUA_API void lua_setuservalue (lua_State *L, int idx) {
   else {
     api_check(L, ttistable(L->top - 1), "table expected");
     uvalue(o)->env = hvalue(L->top - 1);
-    luaC_objbarrier(L, gcvalue(o), hvalue(L->top - 1));
+    luaC_objbarrier(L, o->to_gc(), hvalue(L->top - 1));
   }
   L->top--;
   lua_unlock(L);

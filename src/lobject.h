@@ -133,6 +133,7 @@ typedef class lua_TValue TValue;
 
 
 /* Macros to test type */
+//subject to be removed
 #define checktag(o,t)		(rttype(o) == (t))
 #define checktype(o,t)		(ttypenv(o) == (t))
 //#define ttisnumber(o)		checktag((o), LUA_TNUMBER)
@@ -156,7 +157,7 @@ typedef class lua_TValue TValue;
 
 /* Macros to access values */
 //#define nvalue(o)	check_exp(ttisnumber(o), num_(o))
-#define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
+//#define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
 #define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(val_(o).gc))
 #define tsvalue(o)	(rawtsvalue(o))
@@ -175,7 +176,7 @@ typedef class lua_TValue TValue;
 #define l_isfalse(o)	((((TValue*)(o))->is_nil()) || ((((TValue*)(o))->is_boolean()) && bvalue(o) == 0))
 
 
-#define iscollectable(o)	(rttype(o) & BIT_ISCOLLECTABLE)
+//#define iscollectable(o)	(rttype(o) & BIT_ISCOLLECTABLE)
 
 
 /* Macros for internal tests */
@@ -405,6 +406,7 @@ class lua_TValue {
   inline const bool check_type(int type) { return (novariant(tt_) == type); }
  public:
   TValuefields;
+  inline const bool is_collectable(void) { return (tt_ & BIT_ISCOLLECTABLE); }
   inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
   inline const bool is_nil(void) { return check_tag(LUA_TNIL); }
   inline const bool is_boolean(void) { return check_tag(LUA_TBOOLEAN); }
@@ -421,6 +423,7 @@ class lua_TValue {
   inline const bool is_thread(void) { return check_tag(ctb(LUA_TTHREAD)); }
   inline const bool is_deadkey(void) { return check_type(LUA_TDEADKEY); }
   inline const lua_Number to_number(void) { return check_exp(is_number(), value_.n); }
+  inline GCObject* to_gc(void) { return check_exp(is_collectable(), value_.gc); }
 };
 
 
