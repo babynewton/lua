@@ -443,7 +443,7 @@ LUA_API void *lua_touserdata (lua_State *L, int idx) {
 
 LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  return (!o->is_thread()) ? NULL : thvalue(o);
+  return (!o->is_thread()) ? NULL : o->to_thread();
 }
 
 
@@ -454,7 +454,7 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
     case LUA_TLCL: return o->to_l_closure();
     case LUA_TCCL: return o->to_c_closure();
     case LUA_TLCF: return cast(void *, cast(size_t, o->to_lcf()));
-    case LUA_TTHREAD: return thvalue(o);
+    case LUA_TTHREAD: return o->to_thread();
     case LUA_TUSERDATA:
     case LUA_TLIGHTUSERDATA:
       return lua_touserdata(L, idx);

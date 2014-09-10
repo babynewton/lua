@@ -169,7 +169,7 @@ typedef class lua_TValue TValue;
 //#define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
 //#define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
 //#define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
-#define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(val_(o).gc))
+//#define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
 
@@ -439,6 +439,7 @@ class lua_TValue {
   inline lua_CFunction to_lcf(void) { return check_exp(is_lcf(), value_.f); }
   inline Table* to_table(void) { return check_exp(is_table(), (Table*)(value_.gc)); }
   inline bool to_boolean(void) { return check_exp(is_boolean(), (bool)value_.b); }
+  inline lua_State* to_thread(void) { return check_exp(is_thread(), (lua_State*)(value_.gc)); }
 };
 
 
