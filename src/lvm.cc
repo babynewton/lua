@@ -35,7 +35,7 @@
 const TValue *luaV_tonumber (const TValue *obj, TValue *n) {
   lua_Number num;
   if (((TValue*)obj)->is_number()) return obj;
-  if (((TValue*)obj)->is_string() && luaO_str2d(svalue(obj), tsvalue(obj)->len, &num)) {
+  if (((TValue*)obj)->is_string() && luaO_str2d(svalue(obj), ((TValue*)obj)->to_string()->len, &num)) {
     setnvalue(n, num);
     return n;
   }
@@ -233,7 +233,7 @@ int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numlt(L, ((TValue*)l)->to_number(), ((TValue*)r)->to_number());
   else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
-    return l_strcmp(rawtsvalue(l), rawtsvalue(r)) < 0;
+    return l_strcmp(((TValue*)l)->to_string(), ((TValue*)r)->to_string()) < 0;
   else if ((res = call_orderTM(L, l, r, TM_LT)) < 0)
     luaG_ordererror(L, l, r);
   return res;
@@ -245,7 +245,7 @@ int luaV_lessequal (lua_State *L, const TValue *l, const TValue *r) {
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
     return luai_numle(L, ((TValue*)l)->to_number(), ((TValue*)r)->to_number());
   else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
-    return l_strcmp(rawtsvalue(l), rawtsvalue(r)) <= 0;
+    return l_strcmp(((TValue*)l)->to_string(), ((TValue*)r)->to_string()) <= 0;
   else if ((res = call_orderTM(L, l, r, TM_LE)) >= 0)  /* first try `le' */
     return res;
   else if ((res = call_orderTM(L, r, l, TM_LT)) < 0)  /* else try `lt' */
@@ -266,8 +266,8 @@ int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_TBOOLEAN: return bvalue(t1) == bvalue(t2);  /* true must be 1 !! */
     case LUA_TLIGHTUSERDATA: return ((TValue*)t1)->to_p() == ((TValue*)t2)->to_p();
     case LUA_TLCF: return fvalue(t1) == fvalue(t2);
-    case LUA_TSHRSTR: return eqshrstr(rawtsvalue(t1), rawtsvalue(t2));
-    case LUA_TLNGSTR: return luaS_eqlngstr(rawtsvalue(t1), rawtsvalue(t2));
+    case LUA_TSHRSTR: return eqshrstr(((TValue*)t1)->to_string(), ((TValue*)t2)->to_string());
+    case LUA_TLNGSTR: return luaS_eqlngstr(((TValue*)t1)->to_string(), ((TValue*)t2)->to_string());
     case LUA_TUSERDATA: {
       if (uvalue(t1) == uvalue(t2)) return 1;
       else if (L == NULL) return 0;
@@ -299,19 +299,19 @@ void luaV_concat (lua_State *L, int total) {
       if (!call_binTM(L, top-2, top-1, top-2, TM_CONCAT))
         luaG_concaterror(L, top-2, top-1);
     }
-    else if (tsvalue(top-1)->len == 0)  /* second operand is empty? */
+    else if ((top-1)->to_string()->len == 0)  /* second operand is empty? */
       (void)tostring(L, top - 2);  /* result is first operand */
-    else if ((top-2)->is_string() && tsvalue(top-2)->len == 0) {
+    else if ((top-2)->is_string() && (top-2)->to_string()->len == 0) {
       setobjs2s(L, top - 2, top - 1);  /* result is second op. */
     }
     else {
       /* at least two non-empty string values; get as many as possible */
-      size_t tl = tsvalue(top-1)->len;
+      size_t tl = (top-1)->to_string()->len;
       char *buffer;
       int i;
       /* collect total length */
       for (i = 1; i < total && tostring(L, top-i-1); i++) {
-        size_t l = tsvalue(top-i-1)->len;
+        size_t l = (top-i-1)->to_string()->len;
         if (l >= (MAX_SIZET/sizeof(char)) - tl)
           luaG_runerror(L, "string length overflow");
         tl += l;
@@ -320,7 +320,7 @@ void luaV_concat (lua_State *L, int total) {
       tl = 0;
       n = i;
       do {  /* concat all strings */
-        size_t l = tsvalue(top-i)->len;
+        size_t l = (top-i)->to_string()->len;
         memcpy(buffer+tl, svalue(top-i), l * sizeof(char));
         tl += l;
       } while (--i > 0);
@@ -343,7 +343,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
       return;
     }
     case LUA_TSTRING: {
-      setnvalue(ra, cast_num(tsvalue(rb)->len));
+      setnvalue(ra, cast_num(((TValue*)rb)->to_string()->len));
       return;
     }
     default: {  /* try metamethod */

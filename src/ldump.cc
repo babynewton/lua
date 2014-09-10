@@ -96,7 +96,7 @@ static void DumpConstants(const Proto* f, DumpState* D)
 	DumpNumber(((TValue*)o)->to_number(),D);
 	break;
    case LUA_TSTRING:
-	DumpString(rawtsvalue(o),D);
+	DumpString(((TValue*)o)->to_string(),D);
 	break;
     default: lua_assert(0);
   }

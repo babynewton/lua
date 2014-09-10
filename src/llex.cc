@@ -134,7 +134,7 @@ TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
     luaC_checkGC(L);
   }
   else {  /* string already present */
-    ts = rawtsvalue(keyfromval(o));  /* re-use value previously stored */
+    ts = (keyfromval(o))->to_string();  /* re-use value previously stored */
   }
   L->top--;  /* remove string from stack */
   return ts;

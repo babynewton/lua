@@ -121,7 +121,7 @@ static void removeentry (Node *n) {
 static int iscleared (global_State *g, const TValue *o) {
   if (!((TValue*)o)->is_collectable()) return 0;
   else if (((TValue*)o)->is_string()) {
-    markobject(g, rawtsvalue(o));  /* strings are `values', so are never weak */
+    markobject(g, ((TValue*)o)->to_string());  /* strings are `values', so are never weak */
     return 0;
   }
   else return iswhite(((TValue*)o)->to_gc());
