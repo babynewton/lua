@@ -112,7 +112,7 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (((TValue*)t)->is_table()) {  /* `t' is a table? */
-      Table *h = hvalue(t);
+      Table *h = ((TValue*)t)->to_table();
       const TValue *res = luaH_get(h, key); /* do a primitive get */
       if (!((TValue*)res)->is_nil() ||  /* result is not nil? */
           (tm = fasttm(L, h->metatable, TM_INDEX)) == NULL) { /* or no TM? */
@@ -138,7 +138,7 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (((TValue*)t)->is_table()) {  /* `t' is a table? */
-      Table *h = hvalue(t);
+      Table *h = ((TValue*)t)->to_table();
       TValue *oldval = cast(TValue *, luaH_get(h, key));
       /* if previous value is not nil, there must be a previous entry
          in the table; moreover, a metamethod has no relevance */
@@ -275,9 +275,9 @@ int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
       break;  /* will try TM */
     }
     case LUA_TTABLE: {
-      if (hvalue(t1) == hvalue(t2)) return 1;
+      if (((TValue*)t1)->to_table() == ((TValue*)t2)->to_table()) return 1;
       else if (L == NULL) return 0;
-      tm = get_equalTM(L, hvalue(t1)->metatable, hvalue(t2)->metatable, TM_EQ);
+      tm = get_equalTM(L, ((TValue*)t1)->to_table()->metatable, ((TValue*)t2)->to_table()->metatable, TM_EQ);
       break;  /* will try TM */
     }
     default:
@@ -336,7 +336,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
   const TValue *tm;
   switch (ttypenv(rb)) {
     case LUA_TTABLE: {
-      Table *h = hvalue(rb);
+      Table *h = ((TValue*)rb)->to_table();
       tm = fasttm(L, h->metatable, TM_LEN);
       if (tm) break;  /* metamethod? break switch to call it */
       setnvalue(ra, cast_num(luaH_getn(h)));  /* else primitive len */
@@ -819,7 +819,7 @@ void luaV_execute (lua_State *L) {
           c = GETARG_Ax(*ci->u.l.savedpc++);
         }
         luai_runtimecheck(L, ttistable(ra));
-        h = hvalue(ra);
+        h = ((TValue*)ra)->to_table();
         last = ((c-1)*LFIELDS_PER_FLUSH) + n;
         if (last > h->sizearray)  /* needs more space? */
           luaH_resizearray(L, h, last);  /* pre-allocate it at once */

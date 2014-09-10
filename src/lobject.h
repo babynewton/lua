@@ -167,7 +167,7 @@ typedef class lua_TValue TValue;
 //#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
 //#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
 //#define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
-#define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
+//#define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
 #define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
 #define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
@@ -404,6 +404,7 @@ class Udata;
 class Closure;
 class LClosure;
 class CClosure;
+class Table;
 
 class lua_TValue {
  private:
@@ -436,6 +437,7 @@ class lua_TValue {
   inline LClosure* to_l_closure(void) { return check_exp(is_l_closure(), (LClosure*)(value_.gc)); }
   inline CClosure* to_c_closure(void) { return check_exp(is_c_closure(), (CClosure*)(value_.gc)); }
   inline lua_CFunction to_lcf(void) { return check_exp(is_lcf(), value_.f); }
+  inline Table* to_table(void) { return check_exp(is_table(), (Table*)(value_.gc)); }
 };
 
 

@@ -64,7 +64,7 @@ const TValue *luaT_gettmbyobj (lua_State *L, const TValue *o, TMS event) {
   Table *mt;
   switch (ttypenv(o)) {
     case LUA_TTABLE:
-      mt = hvalue(o)->metatable;
+      mt = ((TValue*)o)->to_table()->metatable;
       break;
     case LUA_TUSERDATA:
       mt = ((TValue*)o)->to_userdata()->metatable;
