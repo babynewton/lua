@@ -324,7 +324,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
     }
     case LUA_TLCL: {  /* Lua function: prepare its call */
       StkId base;
-      Proto *p = clLvalue(func)->p;
+      Proto *p = (func)->to_l_closure()->p;
       n = cast_int(L->top - func) - 1;  /* number of real arguments */
       luaD_checkstack(L, p->maxstacksize);
       for (; n < p->numparams; n++)

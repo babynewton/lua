@@ -164,7 +164,7 @@ typedef class lua_TValue TValue;
 //#define rawuvalue(o)	check_exp(ttisuserdata(o), (Udata*)(val_(o).gc))
 //#define uvalue(o)	(rawuvalue(o))
 //#define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(val_(o).gc))
-#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
+//#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
 #define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
 #define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
 #define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
@@ -402,6 +402,7 @@ union Value {
 class TString;
 class Udata;
 class Closure;
+class LClosure;
 
 class lua_TValue {
  private:
@@ -431,6 +432,7 @@ class lua_TValue {
   inline TString* to_string(void) { return check_exp(is_string(), (TString*)(value_.gc)); }
   inline Udata* to_userdata(void) { return check_exp(is_userdata(), (Udata*)(value_.gc)); }
   inline Closure* to_closure(void) { return check_exp(is_closure(), (Closure*)(value_.gc)); }
+  inline LClosure* to_l_closure(void) { return check_exp(is_l_closure(), (LClosure*)(value_.gc)); }
 };
 
 
@@ -566,7 +568,7 @@ class LClosure : public Closure {
 
 //#define isLfunction(o)	ttisLclosure(o)
 
-#define getproto(o)	(clLvalue(o)->p)
+#define getproto(o)	((o)->to_l_closure()->p)
 
 
 /*

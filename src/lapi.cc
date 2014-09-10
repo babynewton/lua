@@ -451,7 +451,7 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
   switch (ttype(o)) {
     case LUA_TTABLE: return hvalue(o);
-    case LUA_TLCL: return clLvalue(o);
+    case LUA_TLCL: return o->to_l_closure();
     case LUA_TCCL: return clCvalue(o);
     case LUA_TLCF: return cast(void *, cast(size_t, fvalue(o)));
     case LUA_TTHREAD: return thvalue(o);
@@ -981,7 +981,7 @@ LUA_API int lua_load (lua_State *L, lua_Reader* reader,
   if (!chunkname) chunkname = "?";
   status = luaD_protectedparser(L, &z, chunkname, mode);
   if (status == LUA_OK) {  /* no errors? */
-    LClosure *f = clLvalue(L->top - 1);  /* get newly created function */
+    LClosure *f = (L->top - 1)->to_l_closure();  /* get newly created function */
     if (f->nupvalues == 1) {  /* does it have one upvalue? */
       /* get global table from registry */
       Table *reg = hvalue(&G(L)->l_registry);
@@ -1198,7 +1198,7 @@ static const char *aux_upvalue (StkId fi, int n, TValue **val,
       return "";
     }
     case LUA_TLCL: {  /* Lua closure */
-      LClosure *f = clLvalue(fi);
+      LClosure *f = fi->to_l_closure();
       TString *name;
       Proto *p = f->p;
       if (!(1 <= n && n <= p->sizeupvalues)) return NULL;
@@ -1249,7 +1249,7 @@ static UpVal **getupvalref (lua_State *L, int fidx, int n, LClosure **pf) {
   LClosure *f;
   StkId fi = index2addr(L, fidx);
   api_check(L, ttisLclosure(fi), "Lua function expected");
-  f = clLvalue(fi);
+  f = fi->to_l_closure();
   api_check(L, (1 <= n && n <= f->p->sizeupvalues), "invalid upvalue index");
   if (pf) *pf = f;
   return &f->upvals[n - 1];  /* get its upvalue pointer */

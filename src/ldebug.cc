@@ -105,7 +105,7 @@ static const char *upvalname (Proto *p, int uv) {
 
 
 static const char *findvararg (CallInfo *ci, int n, StkId *pos) {
-  int nparams = clLvalue(ci->func)->p->numparams;
+  int nparams = (ci->func)->to_l_closure()->p->numparams;
   if (n >= ci->u.l.base - ci->func - nparams)
     return NULL;  /* no such vararg */
   else {
@@ -148,7 +148,7 @@ LUA_API const char *lua_getlocal (lua_State *L, const lua_Debug *ar, int n) {
     if (!(L->top - 1)->is_l_closure())  /* not a Lua function? */
       name = NULL;
     else  /* consider live variables at function start (parameters) */
-      name = luaF_getlocalname(clLvalue(L->top - 1)->p, n, 0);
+      name = luaF_getlocalname((L->top - 1)->to_l_closure()->p, n, 0);
   }
   else {  /* active function; get information through 'ar' */
     StkId pos = 0;  /* to avoid warnings */

@@ -18,7 +18,7 @@
 #define resethookcount(L)	(L->hookcount = L->basehookcount)
 
 /* Active Lua function (given call info) */
-#define ci_func(ci)		(clLvalue((ci)->func))
+#define ci_func(ci)		(((ci)->func)->to_l_closure())
 
 
 LUAI_FUNC l_noret luaG_typeerror (lua_State *L, const TValue *o,

@@ -538,7 +538,7 @@ void luaV_execute (lua_State *L) {
   StkId base;
  newframe:  /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
-  cl = clLvalue(ci->func);
+  cl = (ci->func)->to_l_closure();
   k = cl->p->k;
   base = ci->u.l.base;
   /* main loop of interpreter */
