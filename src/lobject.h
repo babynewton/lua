@@ -149,7 +149,7 @@ typedef class lua_TValue TValue;
 //#define ttislcf(o)		checktag((o), LUA_TLCF)
 //#define ttisuserdata(o)		checktag((o), ctb(LUA_TUSERDATA))
 //#define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
-#define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
+//#define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
 
 #define ttisequal(o1,o2)	(rttype(o1) == rttype(o2))
 
