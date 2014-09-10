@@ -303,7 +303,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       f = fvalue(func);
       goto Cfunc;
     case LUA_TCCL: {  /* C closure */
-      f = clCvalue(func)->f;
+      f = func->to_c_closure()->f;
      Cfunc:
       luaD_checkstack(L, LUA_MINSTACK);  /* ensure minimum stack size */
       ci = next_ci(L);  /* now 'enter' new function */

@@ -165,7 +165,7 @@ typedef class lua_TValue TValue;
 //#define uvalue(o)	(rawuvalue(o))
 //#define clvalue(o)	check_exp(ttisclosure(o), (Closure*)(val_(o).gc))
 //#define clLvalue(o)	check_exp(ttisLclosure(o), (LClosure*)(val_(o).gc))
-#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
+//#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
 #define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
 #define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
 #define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
@@ -403,6 +403,7 @@ class TString;
 class Udata;
 class Closure;
 class LClosure;
+class CClosure;
 
 class lua_TValue {
  private:
@@ -433,6 +434,7 @@ class lua_TValue {
   inline Udata* to_userdata(void) { return check_exp(is_userdata(), (Udata*)(value_.gc)); }
   inline Closure* to_closure(void) { return check_exp(is_closure(), (Closure*)(value_.gc)); }
   inline LClosure* to_l_closure(void) { return check_exp(is_l_closure(), (LClosure*)(value_.gc)); }
+  inline CClosure* to_c_closure(void) { return check_exp(is_c_closure(), (CClosure*)(value_.gc)); }
 };
 
 

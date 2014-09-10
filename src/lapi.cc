@@ -72,7 +72,7 @@ static TValue *index2addr (lua_State *L, int idx) {
     if (ci->func->is_lcf())  /* light C function? */
       return NONVALIDVALUE;  /* it has no upvalues */
     else {
-      CClosure *func = clCvalue(ci->func);
+      CClosure *func = (ci->func)->to_c_closure();
       return (idx <= func->nupvalues) ? &func->upvalue[idx-1] : NONVALIDVALUE;
     }
   }
@@ -215,7 +215,7 @@ static void moveto (lua_State *L, TValue *fr, int idx) {
   api_checkvalidindex(L, to);
   setobj(L, to, fr);
   if (idx < LUA_REGISTRYINDEX)  /* function upvalue? */
-    luaC_barrier(L, clCvalue(L->ci->func), fr);
+    luaC_barrier(L, (L->ci->func)->to_c_closure(), fr);
   /* LUA_REGISTRYINDEX does not need gc barrier
      (collector revisits it before finishing collection) */
 }
@@ -426,7 +426,7 @@ LUA_API lua_CFunction lua_tocfunction (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
   if (o->is_lcf()) return fvalue(o);
   else if (o->is_c_closure())
-    return clCvalue(o)->f;
+    return (o)->to_c_closure()->f;
   else return NULL;  /* not a C function */
 }
 
@@ -452,7 +452,7 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
   switch (ttype(o)) {
     case LUA_TTABLE: return hvalue(o);
     case LUA_TLCL: return o->to_l_closure();
-    case LUA_TCCL: return clCvalue(o);
+    case LUA_TCCL: return o->to_c_closure();
     case LUA_TLCF: return cast(void *, cast(size_t, fvalue(o)));
     case LUA_TTHREAD: return thvalue(o);
     case LUA_TUSERDATA:
@@ -1191,7 +1191,7 @@ static const char *aux_upvalue (StkId fi, int n, TValue **val,
                                 GCObject **owner) {
   switch (ttype(fi)) {
     case LUA_TCCL: {  /* C closure */
-      CClosure *f = clCvalue(fi);
+      CClosure *f = fi->to_c_closure();
       if (!(1 <= n && n <= f->nupvalues)) return NULL;
       *val = &f->upvalue[n-1];
       if (owner) *owner = obj2gco(f);
@@ -1263,7 +1263,7 @@ LUA_API void *lua_upvalueid (lua_State *L, int fidx, int n) {
       return *getupvalref(L, fidx, n, NULL);
     }
     case LUA_TCCL: {  /* C closure */
-      CClosure *f = clCvalue(fi);
+      CClosure *f = fi->to_c_closure();
       api_check(L, 1 <= n && n <= f->nupvalues, "invalid upvalue index");
       return &f->upvalue[n - 1];
     }
