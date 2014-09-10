@@ -311,7 +311,7 @@ LUA_API void lua_arith (lua_State *L, int op) {
   o1 = L->top - 2;
   o2 = L->top - 1;
   if (o1->is_number() && o2->is_number()) {
-    setnvalue(o1, luaO_arith(op, o1->to_number(), o2->to_number()));
+    o1->setvalue(luaO_arith(op, o1->to_number(), o2->to_number()));
   }
   else
     luaV_arith(L, o1, o1, o2, cast(TMS, op - LUA_OPADD + TM_ADD));
@@ -479,7 +479,7 @@ LUA_API void lua_pushnil (lua_State *L) {
 
 LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
   lua_lock(L);
-  setnvalue(L->top, n);
+  L->top->setvalue(n);
   luai_checknum(L, L->top,
     luaG_runerror(L, "C API - attempt to push a signaling NaN"));
   api_incr_top(L);
@@ -489,7 +489,7 @@ LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
 
 LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
   lua_lock(L);
-  setnvalue(L->top, cast_num(n));
+  L->top->setvalue(cast_num(n));
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -499,7 +499,7 @@ LUA_API void lua_pushunsigned (lua_State *L, lua_Unsigned u) {
   lua_Number n;
   lua_lock(L);
   n = lua_unsigned2number(u);
-  setnvalue(L->top, n);
+  L->top->setvalue(n);
   api_incr_top(L);
   lua_unlock(L);
 }

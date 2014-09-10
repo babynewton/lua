@@ -306,7 +306,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
   k = fs->nk;
   /* numerical value does not need GC barrier;
      table has no metatable, so it does not need to invalidate cache */
-  setnvalue(idx, cast_num(k));
+  idx->setvalue(cast_num(k));
   luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
   while (oldsize < f->sizek) setnilvalue(&f->k[oldsize++]);
   setobj(L, &f->k[k], v);
@@ -327,7 +327,7 @@ int luaK_numberK (FuncState *fs, lua_Number r) {
   int n;
   lua_State *L = fs->ls->L;
   TValue o;
-  setnvalue(&o, r);
+  o.setvalue(r);
   if (r == 0 || luai_numisnan(NULL, r)) {  /* handle -0 and NaN */
     /* use raw representation as key to avoid numeric problems */
     setsvalue(L, L->top++, luaS_newlstr(L, (char *)&r, sizeof(r)));

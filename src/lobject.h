@@ -188,10 +188,13 @@ typedef class lua_TValue TValue;
 
 
 /* Macros to set values */
+//Subject to be removed
 #define settt_(o,t)	((o)->tt_=(t))
 
+/*
 #define setnvalue(obj,x) \
   { TValue *io=(obj); num_(io)=(x); settt_(io, LUA_TNUMBER); }
+*/
 
 #define setnilvalue(obj) settt_(obj, LUA_TNIL)
 
@@ -441,6 +444,7 @@ class lua_TValue {
   inline bool to_boolean(void) { return check_exp(is_boolean(), (bool)value_.b); }
   inline lua_State* to_thread(void) { return check_exp(is_thread(), (lua_State*)(value_.gc)); }
   inline void* to_deadkey(void) { return check_exp(is_deadkey(), (void*)(value_.gc)); }
+  inline void setvalue(lua_Number x) { value_.n = x; tt_ = LUA_TNUMBER; }
 };
 
 
