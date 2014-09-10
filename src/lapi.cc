@@ -443,7 +443,7 @@ LUA_API void *lua_touserdata (lua_State *L, int idx) {
 
 LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  return (!ttisthread(o)) ? NULL : thvalue(o);
+  return (!o->is_thread()) ? NULL : thvalue(o);
 }
 
 
