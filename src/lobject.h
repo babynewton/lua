@@ -168,12 +168,12 @@ typedef class lua_TValue TValue;
 //#define clCvalue(o)	check_exp(ttisCclosure(o), (CClosure*)(val_(o).gc))
 //#define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
 //#define hvalue(o)	check_exp(ttistable(o), (Table*)(val_(o).gc))
-#define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
+//#define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
 #define thvalue(o)	check_exp(ttisthread(o), (lua_State*)(val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
 
-#define l_isfalse(o)	((((TValue*)(o))->is_nil()) || ((((TValue*)(o))->is_boolean()) && bvalue(o) == 0))
+#define l_isfalse(o)	((((TValue*)(o))->is_nil()) || ((((TValue*)(o))->is_boolean()) && ((TValue*)(o))->to_boolean() == 0))
 
 
 //#define iscollectable(o)	(rttype(o) & BIT_ISCOLLECTABLE)
@@ -438,6 +438,7 @@ class lua_TValue {
   inline CClosure* to_c_closure(void) { return check_exp(is_c_closure(), (CClosure*)(value_.gc)); }
   inline lua_CFunction to_lcf(void) { return check_exp(is_lcf(), value_.f); }
   inline Table* to_table(void) { return check_exp(is_table(), (Table*)(value_.gc)); }
+  inline bool to_boolean(void) { return check_exp(is_boolean(), (bool)value_.b); }
 };
 
 

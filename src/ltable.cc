@@ -109,7 +109,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
     case LUA_TSHRSTR:
       return hashstr(t, ((TValue*)key)->to_string());
     case LUA_TBOOLEAN:
-      return hashboolean(t, bvalue(key));
+      return hashboolean(t, ((TValue*)key)->to_boolean());
     case LUA_TLIGHTUSERDATA:
       return hashpointer(t, ((TValue*)key)->to_light_userdata());
     case LUA_TLCF:

@@ -90,7 +90,7 @@ static void DumpConstants(const Proto* f, DumpState* D)
    case LUA_TNIL:
 	break;
    case LUA_TBOOLEAN:
-	DumpChar(bvalue(o),D);
+	DumpChar(((TValue*)o)->to_boolean(),D);
 	break;
    case LUA_TNUMBER:
 	DumpNumber(((TValue*)o)->to_number(),D);
