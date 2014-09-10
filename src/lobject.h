@@ -114,6 +114,7 @@ typedef class lua_TValue TValue;
 #define NILCONSTANT	{NULL}, LUA_TNIL
 
 
+//subject to be removed
 #define val_(o)		((o)->value_)
 #define num_(o)		(val_(o).n)
 
@@ -154,7 +155,7 @@ typedef class lua_TValue TValue;
 #define ttisequal(o1,o2)	(rttype(o1) == rttype(o2))
 
 /* Macros to access values */
-#define nvalue(o)	check_exp(ttisnumber(o), num_(o))
+//#define nvalue(o)	check_exp(ttisnumber(o), num_(o))
 #define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
 #define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
 #define rawtsvalue(o)	check_exp(ttisstring(o), (TString*)(val_(o).gc))
@@ -419,6 +420,7 @@ class lua_TValue {
   inline const bool is_userdata(void) { return check_tag(ctb(LUA_TUSERDATA)); }
   inline const bool is_thread(void) { return check_tag(ctb(LUA_TTHREAD)); }
   inline const bool is_deadkey(void) { return check_type(LUA_TDEADKEY); }
+  inline const lua_Number to_number(void) { return check_exp(is_number(), value_.n); }
 };
 
 

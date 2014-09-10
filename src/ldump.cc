@@ -93,7 +93,7 @@ static void DumpConstants(const Proto* f, DumpState* D)
 	DumpChar(bvalue(o),D);
 	break;
    case LUA_TNUMBER:
-	DumpNumber(nvalue(o),D);
+	DumpNumber(((TValue*)o)->to_number(),D);
 	break;
    case LUA_TSTRING:
 	DumpString(rawtsvalue(o),D);

@@ -311,7 +311,7 @@ LUA_API void lua_arith (lua_State *L, int op) {
   o1 = L->top - 2;
   o2 = L->top - 1;
   if (o1->is_number() && o2->is_number()) {
-    setnvalue(o1, luaO_arith(op, nvalue(o1), nvalue(o2)));
+    setnvalue(o1, luaO_arith(op, o1->to_number(), o2->to_number()));
   }
   else
     luaV_arith(L, o1, o1, o2, cast(TMS, op - LUA_OPADD + TM_ADD));
@@ -344,7 +344,7 @@ LUA_API lua_Number lua_tonumberx (lua_State *L, int idx, int *isnum) {
   const TValue *o = index2addr(L, idx);
   if (tonumber(o, &n)) {
     if (isnum) *isnum = 1;
-    return nvalue(o);
+    return ((TValue*)o)->to_number();
   }
   else {
     if (isnum) *isnum = 0;
@@ -358,7 +358,7 @@ LUA_API lua_Integer lua_tointegerx (lua_State *L, int idx, int *isnum) {
   const TValue *o = index2addr(L, idx);
   if (tonumber(o, &n)) {
     lua_Integer res;
-    lua_Number num = nvalue(o);
+    lua_Number num = ((TValue*)o)->to_number();
     lua_number2integer(res, num);
     if (isnum) *isnum = 1;
     return res;
@@ -375,7 +375,7 @@ LUA_API lua_Unsigned lua_tounsignedx (lua_State *L, int idx, int *isnum) {
   const TValue *o = index2addr(L, idx);
   if (tonumber(o, &n)) {
     lua_Unsigned res;
-    lua_Number num = nvalue(o);
+    lua_Number num = ((TValue*)o)->to_number();
     lua_number2unsigned(res, num);
     if (isnum) *isnum = 1;
     return res;

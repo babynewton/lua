@@ -49,7 +49,7 @@ int luaV_tostring (lua_State *L, StkId obj) {
     return 0;
   else {
     char s[LUAI_MAXNUMBER2STR];
-    lua_Number n = nvalue(obj);
+    lua_Number n = obj->to_number();
     int l = lua_number2str(s, n);
     setsvalue2s(L, obj, luaS_newlstr(L, s, l));
     return 1;
@@ -231,7 +231,7 @@ static int l_strcmp (const TString *ls, const TString *rs) {
 int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
   int res;
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
-    return luai_numlt(L, nvalue(l), nvalue(r));
+    return luai_numlt(L, ((TValue*)l)->to_number(), ((TValue*)r)->to_number());
   else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) < 0;
   else if ((res = call_orderTM(L, l, r, TM_LT)) < 0)
@@ -243,7 +243,7 @@ int luaV_lessthan (lua_State *L, const TValue *l, const TValue *r) {
 int luaV_lessequal (lua_State *L, const TValue *l, const TValue *r) {
   int res;
   if (((TValue*)l)->is_number() && ((TValue*)r)->is_number())
-    return luai_numle(L, nvalue(l), nvalue(r));
+    return luai_numle(L, ((TValue*)l)->to_number(), ((TValue*)r)->to_number());
   else if (((TValue*)l)->is_string() && ((TValue*)r)->is_string())
     return l_strcmp(rawtsvalue(l), rawtsvalue(r)) <= 0;
   else if ((res = call_orderTM(L, l, r, TM_LE)) >= 0)  /* first try `le' */
@@ -262,7 +262,7 @@ int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
   lua_assert(ttisequal(t1, t2));
   switch (ttype(t1)) {
     case LUA_TNIL: return 1;
-    case LUA_TNUMBER: return luai_numeq(nvalue(t1), nvalue(t2));
+    case LUA_TNUMBER: return luai_numeq(((TValue*)t1)->to_number(), ((TValue*)t2)->to_number());
     case LUA_TBOOLEAN: return bvalue(t1) == bvalue(t2);  /* true must be 1 !! */
     case LUA_TLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
     case LUA_TLCF: return fvalue(t1) == fvalue(t2);
@@ -363,7 +363,7 @@ void luaV_arith (lua_State *L, StkId ra, const TValue *rb,
   const TValue *b, *c;
   if ((b = luaV_tonumber(rb, &tempb)) != NULL &&
       (c = luaV_tonumber(rc, &tempc)) != NULL) {
-    lua_Number res = luaO_arith(op - TM_ADD + LUA_OPADD, nvalue(b), nvalue(c));
+    lua_Number res = luaO_arith(op - TM_ADD + LUA_OPADD, ((TValue*)b)->to_number(), ((TValue*)c)->to_number());
     setnvalue(ra, res);
   }
   else if (!call_binTM(L, rb, rc, ra, op))
@@ -521,7 +521,7 @@ void luaV_finishOp (lua_State *L) {
         TValue *rb = RKB(i); \
         TValue *rc = RKC(i); \
         if (((rb)->is_number()) && ((rc)->is_number())) { \
-          lua_Number nb = nvalue(rb), nc = nvalue(rc); \
+          lua_Number nb = (rb)->to_number(), nc = rc->to_number(); \
           setnvalue(ra, op(L, nb, nc)); \
         } \
         else { Protect(luaV_arith(L, ra, rb, rc, tm)); } }
@@ -635,7 +635,7 @@ void luaV_execute (lua_State *L) {
       vmcase(OP_UNM,
         TValue *rb = RB(i);
         if (rb->is_number()) {
-          lua_Number nb = nvalue(rb);
+          lua_Number nb = rb->to_number();
           setnvalue(ra, luai_numunm(L, nb));
         }
         else {
@@ -765,9 +765,9 @@ void luaV_execute (lua_State *L) {
         }
       )
       vmcase(OP_FORLOOP,
-        lua_Number step = nvalue(ra+2);
-        lua_Number idx = luai_numadd(L, nvalue(ra), step); /* increment index */
-        lua_Number limit = nvalue(ra+1);
+        lua_Number step = (ra+2)->to_number();
+        lua_Number idx = luai_numadd(L, ra->to_number(), step); /* increment index */
+        lua_Number limit = (ra+1)->to_number();
         if (luai_numlt(L, 0, step) ? luai_numle(L, idx, limit)
                                    : luai_numle(L, limit, idx)) {
           ci->u.l.savedpc += GETARG_sBx(i);  /* jump back */
@@ -785,7 +785,7 @@ void luaV_execute (lua_State *L) {
           luaG_runerror(L, LUA_QL("for") " limit must be a number");
         else if (!tonumber(pstep, ra+2))
           luaG_runerror(L, LUA_QL("for") " step must be a number");
-        setnvalue(ra, luai_numsub(L, nvalue(ra), nvalue(pstep)));
+        setnvalue(ra, luai_numsub(L, ra->to_number(), ((TValue*)pstep)->to_number()));
         ci->u.l.savedpc += GETARG_sBx(i);
       )
       vmcasenb(OP_TFORCALL,

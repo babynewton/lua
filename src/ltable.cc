@@ -97,7 +97,7 @@ static Node *hashnum (const Table *t, lua_Number n) {
 static Node *mainposition (const Table *t, const TValue *key) {
   switch (ttype(key)) {
     case LUA_TNUMBER:
-      return hashnum(t, nvalue(key));
+      return hashnum(t, ((TValue*)key)->to_number());
     case LUA_TLNGSTR: {
       TString *s = rawtsvalue(key);
       if (s->extra == 0) {  /* no hash? */
@@ -126,7 +126,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
 */
 static int arrayindex (const TValue *key) {
   if (((TValue*)key)->is_number()) {
-    lua_Number n = nvalue(key);
+    lua_Number n = ((TValue*)key)->to_number();
     int k;
     lua_number2int(k, n);
     if (luai_numeq(cast_num(k), n))
@@ -405,7 +405,7 @@ static Node *getfreepos (Table *t) {
 TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
   Node *mp;
   if (((TValue*)key)->is_nil()) luaG_runerror(L, "table index is nil");
-  else if (((TValue*)key)->is_number() && luai_numisnan(L, nvalue(key)))
+  else if (((TValue*)key)->is_number() && luai_numisnan(L, ((TValue*)key)->is_number()))
     luaG_runerror(L, "table index is NaN");
   mp = mainposition(t, key);
   if (!gval(mp)->is_nil() || isdummy(mp)) {  /* main position is taken? */
@@ -451,7 +451,7 @@ const TValue *luaH_getint (Table *t, int key) {
     lua_Number nk = cast_num(key);
     Node *n = hashnum(t, nk);
     do {  /* check whether `key' is somewhere in the chain */
-      if ((gkey(n))->is_number() && luai_numeq(nvalue(gkey(n)), nk))
+      if ((gkey(n))->is_number() && luai_numeq((gkey(n))->is_number(), nk))
         return gval(n);  /* that's it */
       else n = gnext(n);
     } while (n);
@@ -484,7 +484,7 @@ const TValue *luaH_get (Table *t, const TValue *key) {
     case LUA_TNIL: return luaO_nilobject;
     case LUA_TNUMBER: {
       int k;
-      lua_Number n = nvalue(key);
+      lua_Number n = ((TValue*)key)->to_number();
       lua_number2int(k, n);
       if (luai_numeq(cast_num(k), n)) /* index is int? */
         return luaH_getint(t, k);  /* use specialized version */
