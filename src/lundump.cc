@@ -218,7 +218,7 @@ Closure* luaU_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name)
  S.b=buff;
  LoadHeader(&S);
  cl=luaF_newLclosure(L,1);
- setclLvalue(L,L->top,cl); incr_top(L);
+ L->top->set_value(L,cl); incr_top(L);
  cl->p=luaF_newproto(L);
  LoadFunction(&S,cl->p);
  if (cl->p->sizeupvalues != 1)
@@ -226,7 +226,7 @@ Closure* luaU_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name)
   Proto* p=cl->p;
   cl=luaF_newLclosure(L,cl->p->sizeupvalues);
   cl->p=p;
-  setclLvalue(L,L->top-1,cl);
+  (L->top-1)->set_value(L,cl);
  }
  luai_verifycode(L,buff,cl->p);
  return cl;

@@ -405,7 +405,7 @@ static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
   int i;
   LClosure *ncl = luaF_newLclosure(L, nup);
   ncl->p = p;
-  setclLvalue(L, ra, ncl);  /* anchor new closure in stack */
+  ra->set_value(L, ncl);  /* anchor new closure in stack */
   for (i = 0; i < nup; i++) {  /* fill in its upvalues */
     if (uv[i].instack)  /* upvalue refers to local variable? */
       ncl->upvals[i] = luaF_findupval(L, base + uv[i].idx);
@@ -836,7 +836,7 @@ void luaV_execute (lua_State *L) {
         if (ncl == NULL)  /* no match? */
           pushclosure(L, p, cl->upvals, base, ra);  /* create a new one */
         else
-          setclLvalue(L, ra, ncl);  /* push cashed closure */
+          ra->set_value(L, (LClosure*)ncl);  /* push cashed closure */
         checkGC(L, ra + 1);
       )
       vmcase(OP_VARARG,
