@@ -170,7 +170,7 @@ int luaH_next (lua_State *L, Table *t, StkId key) {
   int i = findindex(L, t, key);  /* find original element */
   for (i++; i < t->sizearray; i++) {  /* try first array part */
     if (!(&t->array[i])->is_nil()) {  /* a non-nil value? */
-      key->setvalue(cast_num(i+1));
+      key->set_value(cast_num(i+1));
       setobj2s(L, key+1, &t->array[i]);
       return 1;
     }
@@ -271,7 +271,7 @@ static void setarrayvector (lua_State *L, Table *t, int size) {
   int i;
   luaM_reallocvector(L, t->array, t->sizearray, size, TValue);
   for (i=t->sizearray; i<size; i++)
-     setnilvalue(&t->array[i]);
+     t->array[i].set_nil_value();
   t->sizearray = size;
 }
 
@@ -292,8 +292,8 @@ static void setnodevector (lua_State *L, Table *t, int size) {
     for (i=0; i<size; i++) {
       Node *n = gnode(t, i);
       gnext(n) = NULL;
-      setnilvalue(gkey(n));
-      setnilvalue(gval(n));
+      (gkey(n))->set_nil_value();
+      (gval(n))->set_nil_value();
     }
   }
   t->lsizenode = cast_byte(lsize);
@@ -424,7 +424,7 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
       gnext(othern) = n;  /* redo the chain with `n' in place of `mp' */
       *n = *mp;  /* copy colliding node into free pos. (mp->next also goes) */
       gnext(mp) = NULL;  /* now `mp' is free */
-      setnilvalue(gval(mp));
+      (gval(mp))->set_nil_value();
     }
     else {  /* colliding node is in its own main position */
       /* new node will go into free position */
@@ -522,7 +522,7 @@ void luaH_setint (lua_State *L, Table *t, int key, TValue *value) {
     cell = cast(TValue *, p);
   else {
     TValue k;
-    k.setvalue(cast_num(key));
+    k.set_value(cast_num(key));
     cell = luaH_newkey(L, t, &k);
   }
   setobj2t(L, cell, value);

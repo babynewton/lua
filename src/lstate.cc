@@ -140,7 +140,7 @@ static void stack_init (lua_State *L1, lua_State *L) {
   L1->stack = luaM_newvector(L, BASIC_STACK_SIZE, TValue);
   L1->stacksize = BASIC_STACK_SIZE;
   for (i = 0; i < BASIC_STACK_SIZE; i++)
-    setnilvalue(L1->stack + i);  /* erase new stack */
+    (L1->stack + i)->set_nil_value();  /* erase new stack */
   L1->top = L1->stack;
   L1->stack_last = L1->stack + L1->stacksize - EXTRA_STACK;
   /* initialize first ci */
@@ -148,7 +148,7 @@ static void stack_init (lua_State *L1, lua_State *L) {
   ci->next = ci->previous = NULL;
   ci->callstatus = 0;
   ci->func = L1->top;
-  setnilvalue(L1->top++);  /* 'function' entry for this 'ci' */
+  (L1->top++)->set_nil_value();  /* 'function' entry for this 'ci' */
   ci->top = L1->top + LUA_MINSTACK;
   L1->ci = ci;
 }
@@ -298,7 +298,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->strt.size = 0;
   g->strt.nuse = 0;
   g->strt.hash = NULL;
-  setnilvalue(&g->l_registry);
+  g->l_registry.set_nil_value();
   g->panic = NULL;
   g->version = NULL;
   g->gcstate = GCSpause;

@@ -130,7 +130,7 @@ TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
   if (o->is_nil()) {  /* not in use yet? (see 'addK') */
     /* boolean value does not need GC barrier;
        table has no metatable, so it does not need to invalidate cache */
-    setbvalue(o, 1);  /* t[string] = true */
+    o->set_value(true);  /* t[string] = true */
     luaC_checkGC(L);
   }
   else {  /* string already present */

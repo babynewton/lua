@@ -165,7 +165,7 @@ void luaD_reallocstack (lua_State *L, int newsize) {
   lua_assert(L->stack_last - L->stack == L->stacksize - EXTRA_STACK);
   luaM_reallocvector(L, L->stack, L->stacksize, newsize, TValue);
   for (; lim < newsize; lim++)
-    setnilvalue(L->stack + lim); /* erase new segment */
+    (L->stack + lim)->set_nil_value(); /* erase new segment */
   L->stacksize = newsize;
   L->stack_last = L->stack + newsize - EXTRA_STACK;
   correctstack(L, oldstack);
@@ -265,7 +265,7 @@ static StkId adjust_varargs (lua_State *L, Proto *p, int actual) {
   base = L->top;  /* final position of first argument */
   for (i=0; i<nfixargs; i++) {
     setobjs2s(L, L->top++, fixed + i);
-    setnilvalue(fixed + i);
+    (fixed + i)->set_nil_value();
   }
   return base;
 }
@@ -328,7 +328,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       n = cast_int(L->top - func) - 1;  /* number of real arguments */
       luaD_checkstack(L, p->maxstacksize);
       for (; n < p->numparams; n++)
-        setnilvalue(L->top++);  /* complete missing arguments */
+        (L->top++)->set_nil_value();  /* complete missing arguments */
       if (!p->is_vararg) {
         func = restorestack(L, funcr);
         base = func + 1;
@@ -378,7 +378,7 @@ int luaD_poscall (lua_State *L, StkId firstResult) {
   for (i = wanted; i != 0 && firstResult < L->top; i--)
     setobjs2s(L, res++, firstResult++);
   while (i-- > 0)
-    setnilvalue(res++);
+    (res++)->set_nil_value();
   L->top = res;
   return (wanted - LUA_MULTRET);  /* 0 iff wanted == LUA_MULTRET */
 }

@@ -39,7 +39,7 @@ LClosure *luaF_newLclosure (lua_State *L, int n) {
 UpVal *luaF_newupval (lua_State *L) {
   UpVal *uv = (UpVal*)luaC_newobj(L, LUA_TUPVAL, sizeof(UpVal), NULL, 0);
   uv->v = &uv->u.value;
-  setnilvalue(uv->v);
+  uv->v->set_nil_value();
   return uv;
 }
 

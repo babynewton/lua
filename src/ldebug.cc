@@ -195,7 +195,7 @@ static void funcinfo (lua_Debug *ar, Closure *cl) {
 
 static void collectvalidlines (lua_State *L, Closure *f) {
   if (noLuaClosure(f)) {
-    setnilvalue(L->top);
+    (L->top)->set_nil_value();
     api_incr_top(L);
   }
   else {
@@ -205,7 +205,7 @@ static void collectvalidlines (lua_State *L, Closure *f) {
     Table *t = luaH_new(L);  /* new table to store active lines */
     sethvalue(L, L->top, t);  /* push it on stack */
     api_incr_top(L);
-    setbvalue(&v, 1);  /* boolean 'true' to be the value of all indices */
+    v.set_value(true);  /* boolean 'true' to be the value of all indices */
     for (i = 0; i < ((LClosure*)f)->p->sizelineinfo; i++)  /* for all lines with code */
       luaH_setint(L, t, lineinfo[i], &v);  /* table[line] = true */
   }

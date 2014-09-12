@@ -194,7 +194,6 @@ typedef class lua_TValue TValue;
 /*
 #define setnvalue(obj,x) \
   { TValue *io=(obj); num_(io)=(x); settt_(io, LUA_TNUMBER); }
-*/
 
 #define setnilvalue(obj) settt_(obj, LUA_TNIL)
 
@@ -210,6 +209,8 @@ typedef class lua_TValue TValue;
 #define setgcovalue(L,obj,x) \
   { TValue *io=(obj); GCObject *i_g=(x); \
     val_(io).gc=i_g; settt_(io, ctb(gch(i_g)->tt)); }
+*/
+
 
 #define setsvalue(L,obj,x) \
   { TValue *io=(obj); \
@@ -444,7 +445,12 @@ class lua_TValue {
   inline bool to_boolean(void) { return check_exp(is_boolean(), (bool)value_.b); }
   inline lua_State* to_thread(void) { return check_exp(is_thread(), (lua_State*)(value_.gc)); }
   inline void* to_deadkey(void) { return check_exp(is_deadkey(), (void*)(value_.gc)); }
-  inline void setvalue(lua_Number x) { value_.n = x; tt_ = LUA_TNUMBER; }
+  inline void set_value(lua_Number x) { value_.n = x; tt_ = LUA_TNUMBER; }
+  inline void set_nil_value(void) { tt_ = LUA_TNIL; }
+  inline void set_value(lua_CFunction x) { value_.f = x; tt_ = LUA_TLCF; }
+  inline void set_value(void *x) { value_.p = x; tt_ = LUA_TLIGHTUSERDATA; }
+  inline void set_value(bool x) { value_.b = x; tt_ = LUA_TBOOLEAN; }
+  inline void set_value(GCObject *x) { value_.gc = x; tt_ = ctb(x->tt); }
 };
 
 

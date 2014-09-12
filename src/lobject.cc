@@ -197,12 +197,12 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
         break;
       }
       case 'd': {
-        L->top->setvalue(cast_num(va_arg(argp, int)));
+        L->top->set_value(cast_num(va_arg(argp, int)));
         L->top++;
         break;
       }
       case 'f': {
-        L->top->setvalue(cast_num(va_arg(argp, l_uacNumber)));
+        L->top->set_value(cast_num(va_arg(argp, l_uacNumber)));
         L->top++;
         break;
       }

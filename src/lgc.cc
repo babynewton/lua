@@ -502,7 +502,7 @@ static lu_mem traversestack (global_State *g, lua_State *th) {
   if (g->gcstate == GCSatomic) {  /* final traversal? */
     StkId lim = th->stack + th->stacksize;  /* real end of stack */
     for (; o < lim; o++)  /* clear not-marked stack slice */
-      setnilvalue(o);
+      o->set_nil_value();
   }
   else {  /* count call infos to compute size */
     CallInfo *ci;
@@ -628,7 +628,7 @@ static void clearkeys (global_State *g, GCObject *l, GCObject *f) {
     Node *n, *limit = gnodelast(h);
     for (n = gnode(h, 0); n < limit; n++) {
       if (!gval(n)->is_nil() && (iscleared(g, gkey(n)))) {
-        setnilvalue(gval(n));  /* remove value ... */
+        (gval(n))->set_nil_value();  /* remove value ... */
         removeentry(n);  /* and remove entry from table */
       }
     }
@@ -648,11 +648,11 @@ static void clearvalues (global_State *g, GCObject *l, GCObject *f) {
     for (i = 0; i < h->sizearray; i++) {
       TValue *o = &h->array[i];
       if (iscleared(g, o))  /* value was collected? */
-        setnilvalue(o);  /* remove value */
+        o->set_nil_value();  /* remove value */
     }
     for (n = gnode(h, 0); n < limit; n++) {
       if (!gval(n)->is_nil() && iscleared(g, gval(n))) {
-        setnilvalue(gval(n));  /* remove value ... */
+        (gval(n))->set_nil_value();  /* remove value ... */
         removeentry(n);  /* and remove entry from table */
       }
     }
@@ -812,7 +812,7 @@ static void GCTM (lua_State *L, int propagateerrors) {
   global_State *g = G(L);
   const TValue *tm;
   TValue v;
-  setgcovalue(L, &v, udata2finalize(g));
+  v.set_value(udata2finalize(g));
   tm = luaT_gettmbyobj(L, &v, TM_GC);
   if (tm != NULL && ((TValue*)tm)->is_function()) {  /* is there a finalizer? */
     int status;

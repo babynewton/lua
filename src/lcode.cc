@@ -306,9 +306,9 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
   k = fs->nk;
   /* numerical value does not need GC barrier;
      table has no metatable, so it does not need to invalidate cache */
-  idx->setvalue(cast_num(k));
+  idx->set_value(cast_num(k));
   luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
-  while (oldsize < f->sizek) setnilvalue(&f->k[oldsize++]);
+  while (oldsize < f->sizek) f->k[oldsize++].set_nil_value();
   setobj(L, &f->k[k], v);
   fs->nk++;
   luaC_barrier(L, f, v);
@@ -327,7 +327,7 @@ int luaK_numberK (FuncState *fs, lua_Number r) {
   int n;
   lua_State *L = fs->ls->L;
   TValue o;
-  o.setvalue(r);
+  o.set_value(r);
   if (r == 0 || luai_numisnan(NULL, r)) {  /* handle -0 and NaN */
     /* use raw representation as key to avoid numeric problems */
     setsvalue(L, L->top++, luaS_newlstr(L, (char *)&r, sizeof(r)));
@@ -342,14 +342,14 @@ int luaK_numberK (FuncState *fs, lua_Number r) {
 
 static int boolK (FuncState *fs, int b) {
   TValue o;
-  setbvalue(&o, b);
+  o.set_value(b != 0);
   return addk(fs, &o, &o);
 }
 
 
 static int nilK (FuncState *fs) {
   TValue k, v;
-  setnilvalue(&v);
+  v.set_nil_value();
   /* cannot use nil as key; instead use table itself to represent nil */
   sethvalue(fs->ls->L, &k, fs->h);
   return addk(fs, &k, &v);

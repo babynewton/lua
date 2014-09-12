@@ -175,7 +175,7 @@ LUA_API void lua_settop (lua_State *L, int idx) {
   if (idx >= 0) {
     api_check(L, idx <= L->stack_last - (func + 1), "new top too large");
     while (L->top < (func + 1) + idx)
-      setnilvalue(L->top++);
+      (L->top++)->set_nil_value();
     L->top = (func + 1) + idx;
   }
   else {
@@ -311,7 +311,7 @@ LUA_API void lua_arith (lua_State *L, int op) {
   o1 = L->top - 2;
   o2 = L->top - 1;
   if (o1->is_number() && o2->is_number()) {
-    o1->setvalue(luaO_arith(op, o1->to_number(), o2->to_number()));
+    o1->set_value(luaO_arith(op, o1->to_number(), o2->to_number()));
   }
   else
     luaV_arith(L, o1, o1, o2, cast(TMS, op - LUA_OPADD + TM_ADD));
@@ -471,7 +471,7 @@ LUA_API const void *lua_topointer (lua_State *L, int idx) {
 
 LUA_API void lua_pushnil (lua_State *L) {
   lua_lock(L);
-  setnilvalue(L->top);
+  (L->top)->set_nil_value();
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -479,7 +479,7 @@ LUA_API void lua_pushnil (lua_State *L) {
 
 LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
   lua_lock(L);
-  L->top->setvalue(n);
+  L->top->set_value(n);
   luai_checknum(L, L->top,
     luaG_runerror(L, "C API - attempt to push a signaling NaN"));
   api_incr_top(L);
@@ -489,7 +489,7 @@ LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
 
 LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
   lua_lock(L);
-  L->top->setvalue(cast_num(n));
+  L->top->set_value(cast_num(n));
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -499,7 +499,7 @@ LUA_API void lua_pushunsigned (lua_State *L, lua_Unsigned u) {
   lua_Number n;
   lua_lock(L);
   n = lua_unsigned2number(u);
-  L->top->setvalue(n);
+  L->top->set_value(n);
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -562,7 +562,7 @@ LUA_API const char *lua_pushfstring (lua_State *L, const char *fmt, ...) {
 LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
   lua_lock(L);
   if (n == 0) {
-    setfvalue(L->top, fn);
+    L->top->set_value(fn);
   }
   else {
     CClosure *cl;
@@ -583,7 +583,7 @@ LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
 
 LUA_API void lua_pushboolean (lua_State *L, int b) {
   lua_lock(L);
-  setbvalue(L->top, (b != 0));  /* ensure that true is 1 */
+  L->top->set_value(b != 0);  /* ensure that true is 1 */
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -591,7 +591,7 @@ LUA_API void lua_pushboolean (lua_State *L, int b) {
 
 LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
   lua_lock(L);
-  setpvalue(L->top, p);
+  L->top->set_value(p);
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -670,7 +670,7 @@ LUA_API void lua_rawgetp (lua_State *L, int idx, const void *p) {
   lua_lock(L);
   t = index2addr(L, idx);
   api_check(L, ttistable(t), "table expected");
-  setpvalue(&k, cast(void *, p));
+  k.set_value(cast(void *, p));
   setobj2s(L, L->top, luaH_get(t->to_table(), &k));
   api_incr_top(L);
   lua_unlock(L);
@@ -727,7 +727,7 @@ LUA_API void lua_getuservalue (lua_State *L, int idx) {
   if (o->to_userdata()->env) {
     sethvalue(L, L->top, o->to_userdata()->env);
   } else
-    setnilvalue(L->top);
+    (L->top)->set_nil_value();
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -808,7 +808,7 @@ LUA_API void lua_rawsetp (lua_State *L, int idx, const void *p) {
   api_checknelems(L, 1);
   t = index2addr(L, idx);
   api_check(L, ttistable(t), "table expected");
-  setpvalue(&k, cast(void *, p));
+  k.set_value(cast(void *, p));
   setobj2t(L, luaH_set(L, t->to_table(), &k), L->top - 1);
   luaC_barrierback(L, t->to_gc(), L->top - 1);
   L->top--;
