@@ -574,7 +574,7 @@ LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
     L->top -= n;
     while (n--)
       setobj2n(L, &cl->upvalue[n], L->top + n);
-    setclCvalue(L, L->top, cl);
+    L->top->set_value(L, cl);
   }
   api_incr_top(L);
   lua_unlock(L);

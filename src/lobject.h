@@ -232,12 +232,12 @@ class TValue;
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TLCL)); \
     checkliveness(G(L),io); }
-*/
 
 #define setclCvalue(L,obj,x) \
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TCCL)); \
     checkliveness(G(L),io); }
+*/
 
 #define sethvalue(L,obj,x) \
   { TValue *io=(obj); \
@@ -475,6 +475,7 @@ class TValue {
   inline void set_value(lua_State *L, Udata *x) { set_gc_value(L, (GCObject *)x, LUA_TUSERDATA); }
   inline void set_value(lua_State *L, lua_State *x) { set_gc_value(L, (GCObject *)x, LUA_TTHREAD); }
   inline void set_value(lua_State *L, LClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TLCL); }
+  inline void set_value(lua_State *L, CClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TCCL); }
 };
 
 
