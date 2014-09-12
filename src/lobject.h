@@ -107,7 +107,7 @@ typedef union Value Value;
 
 #define TValuefields	Value value_; int tt_
 
-typedef class lua_TValue TValue;
+class TValue;
 
 
 /* macro defining a nil value */
@@ -209,7 +209,6 @@ typedef class lua_TValue TValue;
 #define setgcovalue(L,obj,x) \
   { TValue *io=(obj); GCObject *i_g=(x); \
     val_(io).gc=i_g; settt_(io, ctb(gch(i_g)->tt)); }
-*/
 
 
 #define setsvalue(L,obj,x) \
@@ -217,6 +216,7 @@ typedef class lua_TValue TValue;
     TString *x_ = (x); \
     val_(io).gc=cast(GCObject *, x_); settt_(io, ctb(x_->tt)); \
     checkliveness(G(L),io); }
+*/
 
 #define setuvalue(L,obj,x) \
   { TValue *io=(obj); \
@@ -261,7 +261,7 @@ typedef class lua_TValue TValue;
 #define setobjs2s	setobj
 /* to stack (not from same stack) */
 #define setobj2s	setobj
-#define setsvalue2s	setsvalue
+//#define setsvalue2s	setsvalue
 #define sethvalue2s	sethvalue
 #define setptvalue2s	setptvalue
 /* from table to same table */
@@ -395,6 +395,24 @@ typedef class lua_TValue TValue;
 */
 
 
+/*
+** Header for string value; string bytes follow the end of this structure
+*/
+class TString : public GCObject {
+ public:
+  lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
+  unsigned int hash;
+  size_t len;  /* number of characters in string */
+};
+
+
+/* get the actual string (array of bytes) from a TString */
+#define getstr(ts)	cast(const char *, (ts) + 1)
+
+/* get the actual string (array of bytes) from a Lua value */
+#define svalue(o)       getstr(((TValue*)o)->to_string())
+
+
 union Value {
   GCObject *gc;    /* collectable objects */
   void *p;         /* light userdata */
@@ -410,7 +428,7 @@ class LClosure;
 class CClosure;
 class Table;
 
-class lua_TValue {
+class TValue {
  private:
   inline const bool check_tag(int type) { return (tt_ == type); }
   inline const bool check_type(int type) { return (novariant(tt_) == type); }
@@ -451,30 +469,13 @@ class lua_TValue {
   inline void set_value(void *x) { value_.p = x; tt_ = LUA_TLIGHTUSERDATA; }
   inline void set_value(bool x) { value_.b = x; tt_ = LUA_TBOOLEAN; }
   inline void set_value(GCObject *x) { value_.gc = x; tt_ = ctb(x->tt); }
+  inline void set_value(lua_State *L, TString *x) { value_.gc = (GCObject*)x; tt_ = ctb(x->tt); checkliveness(G(L), this); }
 };
 
 
 typedef TValue *StkId;  /* index to stack elements */
 
 
-
-
-/*
-** Header for string value; string bytes follow the end of this structure
-*/
-class TString : public GCObject {
- public:
-  lu_byte extra;  /* reserved words for short strings; "has hash" for longs */
-  unsigned int hash;
-  size_t len;  /* number of characters in string */
-};
-
-
-/* get the actual string (array of bytes) from a TString */
-#define getstr(ts)	cast(const char *, (ts) + 1)
-
-/* get the actual string (array of bytes) from a Lua value */
-#define svalue(o)       getstr(((TValue*)o)->to_string())
 
 
 /*

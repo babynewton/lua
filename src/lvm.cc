@@ -51,7 +51,7 @@ int luaV_tostring (lua_State *L, StkId obj) {
     char s[LUAI_MAXNUMBER2STR];
     lua_Number n = obj->to_number();
     int l = lua_number2str(s, n);
-    setsvalue2s(L, obj, luaS_newlstr(L, s, l));
+    obj->set_value(L, luaS_newlstr(L, s, l));
     return 1;
   }
 }
@@ -324,7 +324,7 @@ void luaV_concat (lua_State *L, int total) {
         memcpy(buffer+tl, svalue(top-i), l * sizeof(char));
         tl += l;
       } while (--i > 0);
-      setsvalue2s(L, top-n, luaS_newlstr(L, buffer, tl));
+      (top-n)->set_value(L, luaS_newlstr(L, buffer, tl));
     }
     total -= n-1;  /* got 'n' strings to create 1 new */
     L->top -= n-1;  /* popped 'n' strings and pushed one */

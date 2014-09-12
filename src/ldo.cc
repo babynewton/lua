@@ -84,11 +84,11 @@ struct lua_longjmp {
 static void seterrorobj (lua_State *L, int errcode, StkId oldtop) {
   switch (errcode) {
     case LUA_ERRMEM: {  /* memory error? */
-      setsvalue2s(L, oldtop, G(L)->memerrmsg); /* reuse preregistered msg. */
+      oldtop->set_value(L, G(L)->memerrmsg); /* reuse preregistered msg. */
       break;
     }
     case LUA_ERRERR: {
-      setsvalue2s(L, oldtop, luaS_newliteral(L, "error in error handling"));
+      oldtop->set_value(L, luaS_newliteral(L, "error in error handling"));
       break;
     }
     default: {
@@ -495,7 +495,7 @@ class Resume:public Pfunc {
 */
 l_noret Resume::resume_error (lua_State *L, const char *msg) {
   L->top = m_firstArg;  /* remove args from the stack */
-  setsvalue2s(L, L->top, luaS_new(L, msg));  /* push error message */
+  L->top->set_value(L, luaS_new(L, msg));  /* push error message */
   api_incr_top(L);
   luaD_throw(L, -1);  /* jump back to 'lua_resume' */
 }

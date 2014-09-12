@@ -116,7 +116,7 @@ static void LoadConstants(LoadState* S, Proto* f)
 	o->set_value(LoadNumber(S));
 	break;
    case LUA_TSTRING:
-	setsvalue2n(S->L,o,LoadString(S));
+	o->set_value(S->L,LoadString(S));
 	break;
     default: lua_assert(0);
   }

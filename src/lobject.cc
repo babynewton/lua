@@ -171,7 +171,7 @@ int luaO_str2d (const char *s, size_t len, lua_Number *result) {
 
 
 static void pushstr (lua_State *L, const char *str, size_t l) {
-  setsvalue2s(L, L->top++, luaS_newlstr(L, str, l));
+  (L->top++)->set_value(L, luaS_newlstr(L, str, l));
 }
 
 
