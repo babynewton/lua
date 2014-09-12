@@ -433,6 +433,7 @@ class TValue {
  private:
   inline const bool check_tag(int type) { return (tt_ == type); }
   inline const bool check_type(int type) { return (novariant(tt_) == type); }
+  inline void set_gc_value(lua_State *L, GCObject *x, int type) { value_.gc = x; tt_ = ctb(type); checkliveness(G(L), this); }
  public:
   TValuefields;
   inline const bool is_collectable(void) { return (tt_ & BIT_ISCOLLECTABLE); }
@@ -470,10 +471,10 @@ class TValue {
   inline void set_value(void *x) { value_.p = x; tt_ = LUA_TLIGHTUSERDATA; }
   inline void set_value(bool x) { value_.b = x; tt_ = LUA_TBOOLEAN; }
   inline void set_value(GCObject *x) { value_.gc = x; tt_ = ctb(x->tt); }
-  inline void set_value(lua_State *L, TString *x) { value_.gc = (GCObject*)x; tt_ = ctb(x->tt); checkliveness(G(L), this); }
-  inline void set_value(lua_State *L, Udata *x) { value_.gc = (GCObject*)x; tt_ = ctb(LUA_TUSERDATA); checkliveness(G(L), this); }
-  inline void set_value(lua_State *L, lua_State *x) { value_.gc = (GCObject*)x; tt_ = ctb(LUA_TTHREAD); checkliveness(G(L), this); }
-  inline void set_value(lua_State *L, LClosure *x) { value_.gc = (GCObject*)x; tt_ = ctb(LUA_TLCL); checkliveness(G(L), this); }
+  inline void set_value(lua_State *L, TString *x) { set_gc_value(L, (GCObject *)x, x->tt); }
+  inline void set_value(lua_State *L, Udata *x) { set_gc_value(L, (GCObject *)x, LUA_TUSERDATA); }
+  inline void set_value(lua_State *L, lua_State *x) { set_gc_value(L, (GCObject *)x, LUA_TTHREAD); }
+  inline void set_value(lua_State *L, LClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TLCL); }
 };
 
 
