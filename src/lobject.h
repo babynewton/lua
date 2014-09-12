@@ -182,6 +182,7 @@ class TValue;
 /* Macros for internal tests */
 #define righttt(obj)		(ttype(obj) == gcvalue(obj)->gch.tt)
 
+//Subject to be a member of TValue
 #define checkliveness(g,obj) \
 	lua_longassert(!iscollectable(obj) || \
 			(righttt(obj) && !isdead(g,gcvalue(obj))))
@@ -216,12 +217,12 @@ class TValue;
     TString *x_ = (x); \
     val_(io).gc=cast(GCObject *, x_); settt_(io, ctb(x_->tt)); \
     checkliveness(G(L),io); }
-*/
 
 #define setuvalue(L,obj,x) \
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TUSERDATA)); \
     checkliveness(G(L),io); }
+*/
 
 #define setthvalue(L,obj,x) \
   { TValue *io=(obj); \
@@ -470,6 +471,7 @@ class TValue {
   inline void set_value(bool x) { value_.b = x; tt_ = LUA_TBOOLEAN; }
   inline void set_value(GCObject *x) { value_.gc = x; tt_ = ctb(x->tt); }
   inline void set_value(lua_State *L, TString *x) { value_.gc = (GCObject*)x; tt_ = ctb(x->tt); checkliveness(G(L), this); }
+  inline void set_value(lua_State *L, Udata *x) { value_.gc = (GCObject*)x; tt_ = ctb(LUA_TUSERDATA); checkliveness(G(L), this); }
 };
 
 
