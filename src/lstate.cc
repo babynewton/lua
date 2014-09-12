@@ -173,7 +173,7 @@ static void init_registry (lua_State *L, global_State *g) {
   sethvalue(L, &g->l_registry, registry);
   luaH_resize(L, registry, LUA_RIDX_LAST, 0);
   /* registry[LUA_RIDX_MAINTHREAD] = L */
-  setthvalue(L, &mt, L);
+  mt.set_value(L, L);
   luaH_setint(L, registry, LUA_RIDX_MAINTHREAD, &mt);
   /* registry[LUA_RIDX_GLOBALS] = table of globals */
   sethvalue(L, &mt, luaH_new(L));
@@ -249,7 +249,7 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
 #else
   L1 = (lua_State*) luaC_newobj(L, LUA_TTHREAD, sizeof(LX), NULL, 0);
 #endif
-  setthvalue(L, L->top, L1);
+  L->top->set_value(L, L1);
   api_incr_top(L);
   preinit_state(L1, G(L));
   L1->hookmask = L->hookmask;

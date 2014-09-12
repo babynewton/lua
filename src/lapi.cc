@@ -599,7 +599,7 @@ LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
 
 LUA_API int lua_pushthread (lua_State *L) {
   lua_lock(L);
-  setthvalue(L, L->top, L);
+  L->top->set_value(L, L);
   api_incr_top(L);
   lua_unlock(L);
   return (G(L)->mainthread == L);
