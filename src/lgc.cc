@@ -107,7 +107,7 @@ static void reallymarkobject (global_State *g, GCObject *o);
 static void removeentry (Node *n) {
   lua_assert(gval(n)->is_nil());
   if (valiswhite(gkey(n)))
-    setdeadvalue(gkey(n));  /* unused and unmarked key; remove it */
+    (gkey(n))->set_dead_value();  /* unused and unmarked key; remove it */
 }
 
 

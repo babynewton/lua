@@ -242,9 +242,9 @@ class TValue;
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TTABLE)); \
     checkliveness(G(L),io); }
-*/
 
 #define setdeadvalue(obj)	settt_(obj, LUA_TDEADKEY)
+*/
 
 
 
@@ -467,6 +467,7 @@ class TValue {
   inline void* to_deadkey(void) { return check_exp(is_deadkey(), (void*)(value_.gc)); }
   inline void set_value(lua_Number x) { value_.n = x; tt_ = LUA_TNUMBER; }
   inline void set_nil_value(void) { tt_ = LUA_TNIL; }
+  inline void set_dead_value(void) { tt_ = LUA_TNIL; }
   inline void set_value(lua_CFunction x) { value_.f = x; tt_ = LUA_TLCF; }
   inline void set_value(void *x) { value_.p = x; tt_ = LUA_TLIGHTUSERDATA; }
   inline void set_value(bool x) { value_.b = x; tt_ = LUA_TBOOLEAN; }
