@@ -546,7 +546,7 @@ static void open_func (LexState *ls, FuncState *fs, BlockCnt *bl) {
   f->maxstacksize = 2;  /* registers 0/1 are always valid */
   fs->h = luaH_new(L);
   /* anchor table of constants (to avoid being collected) */
-  sethvalue2s(L, L->top, fs->h);
+  L->top->set_value(L, fs->h);
   incr_top(L);
   enterblock(fs, bl, 0);
 }

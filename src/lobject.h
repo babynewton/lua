@@ -237,12 +237,12 @@ class TValue;
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TCCL)); \
     checkliveness(G(L),io); }
-*/
 
 #define sethvalue(L,obj,x) \
   { TValue *io=(obj); \
     val_(io).gc=cast(GCObject *, (x)); settt_(io, ctb(LUA_TTABLE)); \
     checkliveness(G(L),io); }
+*/
 
 #define setdeadvalue(obj)	settt_(obj, LUA_TDEADKEY)
 
@@ -263,7 +263,7 @@ class TValue;
 /* to stack (not from same stack) */
 #define setobj2s	setobj
 //#define setsvalue2s	setsvalue
-#define sethvalue2s	sethvalue
+//#define sethvalue2s	sethvalue
 #define setptvalue2s	setptvalue
 /* from table to same table */
 #define setobjt2t	setobj
@@ -476,6 +476,7 @@ class TValue {
   inline void set_value(lua_State *L, lua_State *x) { set_gc_value(L, (GCObject *)x, LUA_TTHREAD); }
   inline void set_value(lua_State *L, LClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TLCL); }
   inline void set_value(lua_State *L, CClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TCCL); }
+  inline void set_value(lua_State *L, Table *x) { set_gc_value(L, (GCObject *)x, LUA_TTABLE); }
 };
 
 
@@ -489,8 +490,8 @@ typedef TValue *StkId;  /* index to stack elements */
 */
 class Udata : public GCObject {
  public:
-  struct Table *metatable;
-  struct Table *env;
+  Table *metatable;
+  Table *env;
   size_t len;  /* number of bytes */
 };
 

@@ -351,7 +351,7 @@ static int nilK (FuncState *fs) {
   TValue k, v;
   v.set_nil_value();
   /* cannot use nil as key; instead use table itself to represent nil */
-  sethvalue(fs->ls->L, &k, fs->h);
+  k.set_value(fs->ls->L, fs->h);
   return addk(fs, &k, &v);
 }
 
