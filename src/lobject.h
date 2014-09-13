@@ -244,7 +244,6 @@ class TValue;
     checkliveness(G(L),io); }
 
 #define setdeadvalue(obj)	settt_(obj, LUA_TDEADKEY)
-*/
 
 
 
@@ -252,6 +251,7 @@ class TValue;
 	{ const TValue *io2=(obj2); TValue *io1=(obj1); \
 	  io1->value_ = io2->value_; io1->tt_ = io2->tt_; \
 	  checkliveness(G(L),io1); }
+*/
 
 
 /*
@@ -259,19 +259,19 @@ class TValue;
 */
 
 /* from stack to (same) stack */
-#define setobjs2s	setobj
+//#define setobjs2s	setobj
 /* to stack (not from same stack) */
-#define setobj2s	setobj
+//#define setobj2s	setobj
 //#define setsvalue2s	setsvalue
 //#define sethvalue2s	sethvalue
-#define setptvalue2s	setptvalue
+//#define setptvalue2s	setptvalue
 /* from table to same table */
-#define setobjt2t	setobj
+//#define setobjt2t	setobj
 /* to table */
-#define setobj2t	setobj
+//#define setobj2t	setobj
 /* to new object */
-#define setobj2n	setobj
-#define setsvalue2n	setsvalue
+//#define setobj2n	setobj
+//#define setsvalue2n	setsvalue
 
 
 /* check whether a number is valid (useful only for NaN trick) */
@@ -422,7 +422,6 @@ union Value {
   numfield         /* numbers */
 };
 
-class TString;
 class Udata;
 class Closure;
 class LClosure;
@@ -478,6 +477,11 @@ class TValue {
   inline void set_value(lua_State *L, LClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TLCL); }
   inline void set_value(lua_State *L, CClosure *x) { set_gc_value(L, (GCObject *)x, LUA_TCCL); }
   inline void set_value(lua_State *L, Table *x) { set_gc_value(L, (GCObject *)x, LUA_TTABLE); }
+  inline void set_obj(lua_State *L, const TValue *obj) {
+    value_ = obj->value_;
+    tt_ = obj->tt_;
+    checkliveness(G(L), this);
+  }
 };
 
 

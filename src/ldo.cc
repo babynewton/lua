@@ -92,7 +92,7 @@ static void seterrorobj (lua_State *L, int errcode, StkId oldtop) {
       break;
     }
     default: {
-      setobjs2s(L, oldtop, L->top - 1);  /* error message on current top */
+      oldtop->set_obj(L, L->top - 1);  /* error message on current top */
       break;
     }
   }
@@ -108,7 +108,7 @@ l_noret luaD_throw (lua_State *L, int errcode) {
   else {  /* thread has no error handler */
     L->status = cast_byte(errcode);  /* mark it as dead */
     if (G(L)->mainthread->errorJmp) {  /* main thread has a handler? */
-      setobjs2s(L, G(L)->mainthread->top++, L->top - 1);  /* copy error obj. */
+      (G(L)->mainthread->top++)->set_obj(L, L->top - 1);  /* copy error obj. */
       luaD_throw(G(L)->mainthread, errcode);  /* re-throw in main thread */
     }
     else {  /* no handler at all; abort */
@@ -264,7 +264,7 @@ static StkId adjust_varargs (lua_State *L, Proto *p, int actual) {
   fixed = L->top - actual;  /* first fixed argument */
   base = L->top;  /* final position of first argument */
   for (i=0; i<nfixargs; i++) {
-    setobjs2s(L, L->top++, fixed + i);
+    (L->top++)->set_obj(L, fixed + i);
     (fixed + i)->set_nil_value();
   }
   return base;
@@ -278,10 +278,10 @@ static StkId tryfuncTM (lua_State *L, StkId func) {
   if (!((TValue*)tm)->is_function())
     luaG_typeerror(L, func, "call");
   /* Open a hole inside the stack at `func' */
-  for (p = L->top; p > func; p--) setobjs2s(L, p, p-1);
+  for (p = L->top; p > func; p--) p->set_obj(L, p-1);
   incr_top(L);
   func = restorestack(L, funcr);  /* previous call may change stack */
-  setobj2s(L, func, tm);  /* tag method is the new function to be called */
+  func->set_obj(L, tm);  /* tag method is the new function to be called */
   return func;
 }
 
@@ -376,7 +376,7 @@ int luaD_poscall (lua_State *L, StkId firstResult) {
   L->ci = ci = ci->previous;  /* back to caller */
   /* move results to correct place */
   for (i = wanted; i != 0 && firstResult < L->top; i--)
-    setobjs2s(L, res++, firstResult++);
+    (res++)->set_obj(L, firstResult++);
   while (i-- > 0)
     (res++)->set_nil_value();
   L->top = res;

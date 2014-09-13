@@ -820,8 +820,8 @@ static void GCTM (lua_State *L, int propagateerrors) {
     int running  = g->gcrunning;
     L->allowhook = 0;  /* stop debug hooks during GC metamethod */
     g->gcrunning = 0;  /* avoid GC steps */
-    setobj2s(L, L->top, tm);  /* push finalizer... */
-    setobj2s(L, L->top + 1, &v);  /* ... and its argument */
+    L->top->set_obj(L, tm);  /* push finalizer... */
+    (L->top + 1)->set_obj(L, &v);  /* ... and its argument */
     L->top += 2;  /* and (next line) call the finalizer */
     DotheCall dothecall;
     status = luaD_pcall(L, &dothecall, savestack(L, L->top - 2), 0);

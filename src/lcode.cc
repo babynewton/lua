@@ -309,7 +309,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
   idx->set_value(cast_num(k));
   luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
   while (oldsize < f->sizek) f->k[oldsize++].set_nil_value();
-  setobj(L, &f->k[k], v);
+  f->k[k].set_obj(L, v);
   fs->nk++;
   luaC_barrier(L, f, v);
   return k;
