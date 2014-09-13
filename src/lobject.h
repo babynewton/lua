@@ -115,8 +115,8 @@ class TValue;
 
 
 //subject to be removed
-#define val_(o)		((o)->value_)
-#define num_(o)		(val_(o).n)
+//#define val_(o)		((o)->value_)
+//#define num_(o)		(val_(o).n)
 
 
 /* raw type tag of a TValue */
@@ -134,8 +134,8 @@ class TValue;
 
 /* Macros to test type */
 //subject to be removed
-#define checktag(o,t)		(rttype(o) == (t))
-#define checktype(o,t)		(ttypenv(o) == (t))
+//#define checktag(o,t)		(rttype(o) == (t))
+//#define checktype(o,t)		(ttypenv(o) == (t))
 //#define ttisnumber(o)		checktag((o), LUA_TNUMBER)
 //#define ttisnil(o)		checktag((o), LUA_TNIL)
 //#define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
@@ -190,7 +190,7 @@ class TValue;
 
 /* Macros to set values */
 //Subject to be removed
-#define settt_(o,t)	((o)->tt_=(t))
+//#define settt_(o,t)	((o)->tt_=(t))
 
 /*
 #define setnvalue(obj,x) \
