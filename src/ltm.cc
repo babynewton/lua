@@ -62,7 +62,7 @@ const TValue *luaT_gettm (Table *events, TMS event, TString *ename) {
 
 const TValue *luaT_gettmbyobj (lua_State *L, const TValue *o, TMS event) {
   Table *mt;
-  switch (ttypenv(o)) {
+  switch (((TValue*)o)->typenv()) {
     case LUA_TTABLE:
       mt = ((TValue*)o)->to_table()->metatable;
       break;
@@ -70,7 +70,7 @@ const TValue *luaT_gettmbyobj (lua_State *L, const TValue *o, TMS event) {
       mt = ((TValue*)o)->to_userdata()->metatable;
       break;
     default:
-      mt = G(L)->mt[ttypenv(o)];
+      mt = G(L)->mt[((TValue*)o)->typenv()];
   }
   return (mt ? luaH_getstr(mt, G(L)->tmname[event]) : luaO_nilobject);
 }

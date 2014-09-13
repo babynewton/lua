@@ -120,7 +120,7 @@ class TValue;
 
 
 /* raw type tag of a TValue */
-#define rttype(o)	((o)->tt_)
+//#define rttype(o)	((o)->tt_)
 
 /* tag with no variants (bits 0-3) */
 #define novariant(x)	((x) & 0x0F)
@@ -129,7 +129,7 @@ class TValue;
 //#define ttype(o)	(rttype(o) & 0x3F)
 
 /* type tag of a TValue with no variants (bits 0-3) */
-#define ttypenv(o)	(novariant(rttype(o)))
+//#define ttypenv(o)	(novariant(rttype(o)))
 
 
 /* Macros to test type */
@@ -153,7 +153,7 @@ class TValue;
 //#define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
 //#define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
 
-#define ttisequal(o1,o2)	(rttype(o1) == rttype(o2))
+//#define ttisequal(o1,o2)	(rttype(o1) == rttype(o2))
 
 /* Macros to access values */
 //#define nvalue(o)	check_exp(ttisnumber(o), num_(o))
@@ -436,6 +436,7 @@ class TValue {
  public:
   TValuefields;
   inline const int type(void) { return tt_ & 0x3F; }
+  inline const int typenv(void) { return novariant(tt_); }
   inline const bool is_collectable(void) { return (tt_ & BIT_ISCOLLECTABLE); }
   inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
   inline const bool is_nil(void) { return check_tag(LUA_TNIL); }
@@ -483,6 +484,7 @@ class TValue {
     tt_ = obj->tt_;
     checkliveness(G(L), this);
   }
+  inline static bool is_equal(TValue* o1, TValue* o2) { return o1->tt_ == o2->tt_; }
 };
 
 

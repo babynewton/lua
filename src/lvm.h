@@ -17,7 +17,7 @@
 
 #define tonumber(o,n)	((((TValue*)(o))->is_number()) || (((o) = luaV_tonumber(o,n)) != NULL))
 
-#define equalobj(L,o1,o2)  (ttisequal(o1, o2) && luaV_equalobj_(L, o1, o2))
+#define equalobj(L,o1,o2)  (TValue::is_equal((TValue*)o1, (TValue*)o2) && luaV_equalobj_(L, o1, o2))
 
 #define luaV_rawequalobj(o1,o2)		equalobj(NULL,o1,o2)
 

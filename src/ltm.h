@@ -44,7 +44,7 @@ typedef enum {
 #define fasttm(l,et,e)	gfasttm(G(l), et, e)
 
 #define ttypename(x)	luaT_typenames_[(x) + 1]
-#define objtypename(x)	ttypename(ttypenv(x))
+#define objtypename(x)	ttypename(((TValue*)x)->typenv())
 
 LUAI_DDEC const char *const luaT_typenames_[LUA_TOTALTAGS];
 

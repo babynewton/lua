@@ -84,8 +84,8 @@ static void DumpConstants(const Proto* f, DumpState* D)
  for (i=0; i<n; i++)
  {
   const TValue* o=&f->k[i];
-  DumpChar(ttypenv(o),D);
-  switch (ttypenv(o))
+  DumpChar(((TValue*)o)->typenv(),D);
+  switch (((TValue*)o)->typenv())
   {
    case LUA_TNIL:
 	break;

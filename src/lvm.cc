@@ -334,7 +334,7 @@ void luaV_concat (lua_State *L, int total) {
 
 void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
   const TValue *tm;
-  switch (ttypenv(rb)) {
+  switch (((TValue*)rb)->typenv()) {
     case LUA_TTABLE: {
       Table *h = ((TValue*)rb)->to_table();
       tm = fasttm(L, h->metatable, TM_LEN);

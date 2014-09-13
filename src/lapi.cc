@@ -255,7 +255,7 @@ LUA_API void lua_pushvalue (lua_State *L, int idx) {
 
 LUA_API int lua_type (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  return (isvalid(o) ? ttypenv(o) : LUA_TNONE);
+  return (isvalid(o) ? o->typenv() : LUA_TNONE);
 }
 
 
@@ -413,7 +413,7 @@ LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
 
 LUA_API size_t lua_rawlen (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  switch (ttypenv(o)) {
+  switch (o->typenv()) {
     case LUA_TSTRING: return o->to_string()->len;
     case LUA_TUSERDATA: return o->to_userdata()->len;
     case LUA_TTABLE: return luaH_getn(o->to_table());
@@ -433,7 +433,7 @@ LUA_API lua_CFunction lua_tocfunction (lua_State *L, int idx) {
 
 LUA_API void *lua_touserdata (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  switch (ttypenv(o)) {
+  switch (o->typenv()) {
     case LUA_TUSERDATA: return (o->to_userdata() + 1);
     case LUA_TLIGHTUSERDATA: return o->to_light_userdata();
     default: return NULL;
@@ -696,7 +696,7 @@ LUA_API int lua_getmetatable (lua_State *L, int objindex) {
   int res;
   lua_lock(L);
   obj = index2addr(L, objindex);
-  switch (ttypenv(obj)) {
+  switch (((TValue*)obj)->typenv()) {
     case LUA_TTABLE:
       mt = ((TValue*)obj)->to_table()->metatable;
       break;
@@ -704,7 +704,7 @@ LUA_API int lua_getmetatable (lua_State *L, int objindex) {
       mt = ((TValue*)obj)->to_userdata()->metatable;
       break;
     default:
-      mt = G(L)->mt[ttypenv(obj)];
+      mt = G(L)->mt[((TValue*)obj)->typenv()];
       break;
   }
   if (mt == NULL)
@@ -828,7 +828,7 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
     api_check(L, ttistable(L->top - 1), "table expected");
     mt = (L->top - 1)->to_table();
   }
-  switch (ttypenv(obj)) {
+  switch (obj->typenv()) {
     case LUA_TTABLE: {
       obj->to_table()->metatable = mt;
       if (mt) {
@@ -846,7 +846,7 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
       break;
     }
     default: {
-      G(L)->mt[ttypenv(obj)] = mt;
+      G(L)->mt[obj->typenv()] = mt;
       break;
     }
   }
