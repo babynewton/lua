@@ -449,7 +449,7 @@ LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
 
 LUA_API const void *lua_topointer (lua_State *L, int idx) {
   StkId o = index2addr(L, idx);
-  switch (ttype(o)) {
+  switch (o->type()) {
     case LUA_TTABLE: return o->to_table();
     case LUA_TLCL: return o->to_l_closure();
     case LUA_TCCL: return o->to_c_closure();
@@ -1189,7 +1189,7 @@ LUA_API void *lua_newuserdata (lua_State *L, size_t size) {
 
 static const char *aux_upvalue (StkId fi, int n, TValue **val,
                                 GCObject **owner) {
-  switch (ttype(fi)) {
+  switch (fi->type()) {
     case LUA_TCCL: {  /* C closure */
       CClosure *f = fi->to_c_closure();
       if (!(1 <= n && n <= f->nupvalues)) return NULL;
@@ -1258,7 +1258,7 @@ static UpVal **getupvalref (lua_State *L, int fidx, int n, LClosure **pf) {
 
 LUA_API void *lua_upvalueid (lua_State *L, int fidx, int n) {
   StkId fi = index2addr(L, fidx);
-  switch (ttype(fi)) {
+  switch (fi->type()) {
     case LUA_TLCL: {  /* lua closure */
       return *getupvalref(L, fidx, n, NULL);
     }

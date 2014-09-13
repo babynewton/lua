@@ -298,7 +298,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
   CallInfo *ci;
   int n;  /* number of arguments (Lua) or returns (C) */
   ptrdiff_t funcr = savestack(L, func);
-  switch (ttype(func)) {
+  switch (func->type()) {
     case LUA_TLCF:  /* light C function */
       f = func->to_lcf();
       goto Cfunc;

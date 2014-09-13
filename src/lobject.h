@@ -126,7 +126,7 @@ class TValue;
 #define novariant(x)	((x) & 0x0F)
 
 /* type tag of a TValue (bits 0-3 for tags + variant bits 4-5) */
-#define ttype(o)	(rttype(o) & 0x3F)
+//#define ttype(o)	(rttype(o) & 0x3F)
 
 /* type tag of a TValue with no variants (bits 0-3) */
 #define ttypenv(o)	(novariant(rttype(o)))
@@ -435,6 +435,7 @@ class TValue {
   inline void set_gc_value(lua_State *L, GCObject *x, int type) { value_.gc = x; tt_ = ctb(type); checkliveness(G(L), this); }
  public:
   TValuefields;
+  inline const int type(void) { return tt_ & 0x3F; }
   inline const bool is_collectable(void) { return (tt_ & BIT_ISCOLLECTABLE); }
   inline const bool is_number(void) { return check_tag(LUA_TNUMBER); }
   inline const bool is_nil(void) { return check_tag(LUA_TNIL); }

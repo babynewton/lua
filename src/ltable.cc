@@ -95,7 +95,7 @@ static Node *hashnum (const Table *t, lua_Number n) {
 ** of its hash value)
 */
 static Node *mainposition (const Table *t, const TValue *key) {
-  switch (ttype(key)) {
+  switch (((TValue*)key)->type()) {
     case LUA_TNUMBER:
       return hashnum(t, ((TValue*)key)->to_number());
     case LUA_TLNGSTR: {
@@ -479,7 +479,7 @@ const TValue *luaH_getstr (Table *t, TString *key) {
 ** main search function
 */
 const TValue *luaH_get (Table *t, const TValue *key) {
-  switch (ttype(key)) {
+  switch (((TValue*)key)->type()) {
     case LUA_TSHRSTR: return luaH_getstr(t, ((TValue*)key)->to_string());
     case LUA_TNIL: return luaO_nilobject;
     case LUA_TNUMBER: {

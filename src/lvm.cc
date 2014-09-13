@@ -260,7 +260,7 @@ int luaV_lessequal (lua_State *L, const TValue *l, const TValue *r) {
 int luaV_equalobj_ (lua_State *L, const TValue *t1, const TValue *t2) {
   const TValue *tm;
   lua_assert(ttisequal(t1, t2));
-  switch (ttype(t1)) {
+  switch (((TValue*)t1)->type()) {
     case LUA_TNIL: return 1;
     case LUA_TNUMBER: return luai_numeq(((TValue*)t1)->to_number(), ((TValue*)t2)->to_number());
     case LUA_TBOOLEAN: return ((TValue*)t1)->to_boolean() == ((TValue*)t2)->to_boolean();  /* true must be 1 !! */

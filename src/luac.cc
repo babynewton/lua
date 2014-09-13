@@ -273,7 +273,7 @@ static void PrintConstant(const Proto* f, int i)
 	PrintString(((TValue*)o)->to_string());
 	break;
   default:				/* cannot happen */
-	printf("? type=%d",ttype(o));
+	printf("? type=%d",((TValue*)o)->type());
 	break;
  }
 }
