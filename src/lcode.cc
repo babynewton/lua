@@ -82,7 +82,7 @@ static void fixjump (FuncState *fs, int pc, int dest) {
   int offset = dest-(pc+1);
   lua_assert(dest != NO_JUMP);
   if (abs(offset) > MAXARG_sBx)
-    luaX_syntaxerror(fs->ls, "control structure too long");
+    fs->ls->syntax_error("control structure too long");
   SETARG_sBx(*jmp, offset);
 }
 
@@ -213,13 +213,13 @@ static int luaK_code (FuncState *fs, Instruction i) {
   Proto *f = fs->f;
   dischargejpc(fs);  /* `pc' will change */
   /* put new instruction in code array */
-  luaM_growvector(fs->ls->L, f->code, fs->pc, f->sizecode, Instruction,
+  luaM_growvector(fs->ls->L(), f->code, fs->pc, f->sizecode, Instruction,
                   MAX_INT, "opcodes");
   f->code[fs->pc] = i;
   /* save corresponding line information */
-  luaM_growvector(fs->ls->L, f->lineinfo, fs->pc, f->sizelineinfo, int,
+  luaM_growvector(fs->ls->L(), f->lineinfo, fs->pc, f->sizelineinfo, int,
                   MAX_INT, "opcodes");
-  f->lineinfo[fs->pc] = fs->ls->lastline;
+  f->lineinfo[fs->pc] = fs->ls->lastline();
   return fs->pc++;
 }
 
@@ -262,7 +262,7 @@ void luaK_checkstack (FuncState *fs, int n) {
   int newstack = fs->freereg + n;
   if (newstack > fs->f->maxstacksize) {
     if (newstack >= MAXSTACK)
-      luaX_syntaxerror(fs->ls, "function or expression too complex");
+      fs->ls->syntax_error("function or expression too complex");
     fs->f->maxstacksize = cast_byte(newstack);
   }
 }
@@ -289,7 +289,7 @@ static void freeexp (FuncState *fs, expdesc *e) {
 
 
 static int addk (FuncState *fs, TValue *key, TValue *v) {
-  lua_State *L = fs->ls->L;
+  lua_State *L = fs->ls->L();
   TValue *idx = luaH_set(L, fs->h, key);
   Proto *f = fs->f;
   int k, oldsize;
@@ -318,14 +318,14 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
 
 int luaK_stringK (FuncState *fs, TString *s) {
   TValue o;
-  o.set_value(fs->ls->L, s);
+  o.set_value(fs->ls->L(), s);
   return addk(fs, &o, &o);
 }
 
 
 int luaK_numberK (FuncState *fs, lua_Number r) {
   int n;
-  lua_State *L = fs->ls->L;
+  lua_State *L = fs->ls->L();
   TValue o;
   o.set_value(r);
   if (r == 0 || luai_numisnan(NULL, r)) {  /* handle -0 and NaN */
@@ -351,7 +351,7 @@ static int nilK (FuncState *fs) {
   TValue k, v;
   v.set_nil_value();
   /* cannot use nil as key; instead use table itself to represent nil */
-  k.set_value(fs->ls->L, fs->h);
+  k.set_value(fs->ls->L(), fs->h);
   return addk(fs, &k, &v);
 }
 
@@ -875,7 +875,7 @@ void luaK_setlist (FuncState *fs, int base, int nelems, int tostore) {
     codeextraarg(fs, c);
   }
   else
-    luaX_syntaxerror(fs->ls, "constructor too long");
+    fs->ls->syntax_error("constructor too long");
   fs->freereg = base + 1;  /* free registers with list values */
 }
 

@@ -48,31 +48,53 @@ typedef struct Token {
 
 /* state of the lexer plus state of the parser when shared by all
    functions */
-typedef struct LexState {
+class LexState {
+ private:
   int current;  /* current character (charint) */
   int linenumber;  /* input line counter */
-  int lastline;  /* line of last token `consumed' */
+  int m_lastline;  /* line of last token `consumed' */
   Token t;  /* current token */
   Token lookahead;  /* look ahead token */
   struct FuncState *fs;  /* current function (parser) */
-  struct lua_State *L;
+  struct lua_State *m_L;
   ZIO *z;  /* input stream */
   Mbuffer *buff;  /* buffer for tokens */
   struct Dyndata *dyd;  /* dynamic structures used by the parser */
   TString *source;  /* current source name */
   TString *envn;  /* environment variable name */
   char decpoint;  /* locale decimal point */
-} LexState;
+  int llex (SemInfo *seminfo);
+  inline int next(void) { current = z->getc(); return current; }
+  void incline_number(void);
+  inline bool currIsNewline(void) { return (current == '\n' || current == '\r'); }
+  inline void save_and_next(void) { save(current), next(); }
+  int skip_sep (void);
+  void save (int c);
+  void read_long_string (SemInfo *seminfo, int sep);
+  l_noret lexerror(const char *msg, int token);
+  const char *txtToken (int token);
+  void check_condition(lu_byte c,const char *msg) { if (!(c)) syntax_error(msg); }
+  int check_next (const char *set);
+  void buffreplace (char from, char to);
+  void read_numeral (SemInfo *seminfo);
+  void trydecpoint (SemInfo *seminfo);
+  void escError (int *c, int n, const char *msg);
+  int readhexaesc (void);
+  int readdecesc (void);
+  void read_string (int del, SemInfo *seminfo);
+ public:
+  lua_State* L(void) { return m_L; }
+  int lastline(void) { return m_lastline; }
+  int look_ahead(void);
+  void next_token(void);
+  const char *token2str (int token);
+  l_noret syntax_error (const char *msg);
+  TString *new_string (const char *str, size_t l);
+  void set_input (lua_State *L, ZIO *z, TString *source, int firstchar);
+ };
 
 
 LUAI_FUNC void luaX_init (lua_State *L);
-LUAI_FUNC void luaX_setinput (lua_State *L, LexState *ls, ZIO *z,
-                              TString *source, int firstchar);
-LUAI_FUNC TString *luaX_newstring (LexState *ls, const char *str, size_t l);
-LUAI_FUNC void luaX_next (LexState *ls);
-LUAI_FUNC int luaX_lookahead (LexState *ls);
-LUAI_FUNC l_noret luaX_syntaxerror (LexState *ls, const char *s);
-LUAI_FUNC const char *luaX_token2str (LexState *ls, int token);
 
 
 #endif
