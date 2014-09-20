@@ -43,7 +43,6 @@ static const char *const luaX_tokens [] = {
 
 
 
-static l_noret lexerror (LexState *ls, const char *msg, int token);
 
 
 void LexState::save (int c) {
@@ -100,8 +99,8 @@ const char *LexState::txtToken (int token) {
 
 l_noret LexState::lexerror (const char *msg, int token) {
   char buff[LUA_IDSIZE];
-  luaO_chunkid(buff, getstr(source), LUA_IDSIZE);
-  msg = luaO_pushfstring(m_L, "%s:%d: %s", buff, linenumber, msg);
+  luaO_chunkid(buff, getstr(m_source), LUA_IDSIZE);
+  msg = luaO_pushfstring(m_L, "%s:%d: %s", buff, m_linenumber, msg);
   if (token)
     luaO_pushfstring(m_L, "%s near %s", msg, txtToken(token));
   luaD_throw(m_L, LUA_ERRSYNTAX);
@@ -109,7 +108,7 @@ l_noret LexState::lexerror (const char *msg, int token) {
 
 
 l_noret LexState::syntax_error (const char *msg) {
-  lexerror(msg, t.token);
+  lexerror(msg, m_t.token);
 }
 
 
@@ -147,12 +146,12 @@ void LexState::incline_number (void) {
   next();  /* skip `\n' or `\r' */
   if (currIsNewline() && current != old)
     next();  /* skip `\n\r' or `\r\n' */
-  if (++linenumber >= MAX_INT)
+  if (++m_linenumber >= MAX_INT)
     syntax_error("chunk has too many lines");
 }
 
 
-void LexState::set_input (lua_State *L, ZIO *zio, TString *source_str,
+void LexState::set_input (lua_State *L, ZIO *zio, TString *source,
                     int firstchar) {
   decpoint = '.';
   m_L = L;
@@ -160,11 +159,11 @@ void LexState::set_input (lua_State *L, ZIO *zio, TString *source_str,
   lookahead.token = TK_EOS;  /* no look-ahead token */
   z = zio;
   fs = NULL;
-  linenumber = 1;
+  m_linenumber = 1;
   m_lastline = 1;
-  source = source_str;
-  envn = luaS_new(L, LUA_ENV);  /* create env name */
-  luaS_fix(envn);  /* never collect this name */
+  m_source = source;
+  m_envn = luaS_new(L, LUA_ENV);  /* create env name */
+  luaS_fix(m_envn);  /* never collect this name */
   buff->resize(m_L, LUA_MINBUFFER);  /* initialize buffer */
 }
 
@@ -362,7 +361,7 @@ void LexState::read_string (int del, SemInfo *seminfo) {
           case '\n': case '\r':
             incline_number(); c = '\n'; goto only_save;
           case '\\': case '\"': case '\'':
-            c = ls->current; goto read_save;
+            c = current; goto read_save;
           case EOZ: goto no_save;  /* will raise an error next loop */
           case 'z': {  /* zap following span of spaces */
             next();  /* skip the 'z' */
@@ -376,12 +375,12 @@ void LexState::read_string (int del, SemInfo *seminfo) {
             if (!lisdigit(current))
               escError(&current, 1, "invalid escape sequence");
             /* digital escape \ddd */
-            c = readdecesc(ls);
+            c = readdecesc();
             goto only_save;
           }
         }
        read_save: next();  /* read next character */
-       only_save: save(ls, c);  /* save 'c' */
+       only_save: save(c);  /* save 'c' */
        no_save: break;
       }
       default:
@@ -415,20 +414,20 @@ int LexState::llex (SemInfo *seminfo) {
           int sep = skip_sep();
           buff->reset();  /* `skip_sep' may dirty the buffer */
           if (sep >= 0) {
-            read_long_string(ls, NULL, sep);  /* skip long comment */
+            read_long_string(NULL, sep);  /* skip long comment */
             buff->reset();  /* previous call may dirty the buff. */
             break;
           }
         }
         /* else short comment */
-        while (!currIsNewline() && ls->current != EOZ)
+        while (!currIsNewline() && current != EOZ)
           next();  /* skip until end of line (or end of file) */
         break;
       }
       case '[': {  /* long string or simply '[' */
         int sep = skip_sep();
         if (sep >= 0) {
-          read_long_string(ls, seminfo, sep);
+          read_long_string(seminfo, sep);
           return TK_STRING;
         }
         else if (sep == -1) return '[';
@@ -460,7 +459,7 @@ int LexState::llex (SemInfo *seminfo) {
         else { next(); return TK_DBCOLON; }
       }
       case '"': case '\'': {  /* short literal strings */
-        read_string(ls, ls->current, seminfo);
+        read_string(current, seminfo);
         return TK_STRING;
       }
       case '.': {  /* '.', '..', '...', or number */
@@ -470,7 +469,7 @@ int LexState::llex (SemInfo *seminfo) {
             return TK_DOTS;   /* '...' */
           else return TK_CONCAT;   /* '..' */
         }
-        else if (!lisdigit(ls->current)) return '.';
+        else if (!lisdigit(current)) return '.';
         /* else go through */
       }
       case '0': case '1': case '2': case '3': case '4':
@@ -482,13 +481,13 @@ int LexState::llex (SemInfo *seminfo) {
         return TK_EOS;
       }
       default: {
-        if (lislalpha(ls->current)) {  /* identifier or reserved word? */
+        if (lislalpha(current)) {  /* identifier or reserved word? */
           TString *ts;
           do {
             save_and_next();
-          } while (lislalnum(ls->current));
-          ts = ls->new_string(ls->buff->buffer(),
-                                  ls->buff->bufflen());
+          } while (lislalnum(current));
+          ts = new_string(buff->buffer(),
+                                  buff->bufflen());
           seminfo->ts = ts;
           if (isreserved(ts))  /* reserved word? */
             return ts->extra - 1 + FIRST_RESERVED;
@@ -508,19 +507,19 @@ int LexState::llex (SemInfo *seminfo) {
 
 
 void LexState::next_token(void) {
-  lastline = linenumber;
+  m_lastline = m_linenumber;
   if (lookahead.token != TK_EOS) {  /* is there a look-ahead token? */
-    t = lookahead;  /* use this one */
+    m_t = lookahead;  /* use this one */
     lookahead.token = TK_EOS;  /* and discharge it */
   }
   else
-    t.token = llex(&t.seminfo);  /* read next token */
+    m_t.token = llex(&m_t.seminfo);  /* read next token */
 }
 
 
 int LexState::look_ahead (void) {
   lua_assert(lookahead.token == TK_EOS);
-  lookahead.token = llex(&ls->lookahead.seminfo);
-  return ls->lookahead.token;
+  lookahead.token = llex(&lookahead.seminfo);
+  return lookahead.token;
 }
 

@@ -9,6 +9,7 @@
 
 #include "lobject.h"
 #include "lzio.h"
+#include "lstate.h"
 
 
 #define FIRST_RESERVED	257
@@ -51,17 +52,16 @@ typedef struct Token {
 class LexState {
  private:
   int current;  /* current character (charint) */
-  int linenumber;  /* input line counter */
+  int m_linenumber;  /* input line counter */
   int m_lastline;  /* line of last token `consumed' */
-  Token t;  /* current token */
+  Token m_t;  /* current token */
   Token lookahead;  /* look ahead token */
-  struct FuncState *fs;  /* current function (parser) */
   struct lua_State *m_L;
   ZIO *z;  /* input stream */
   Mbuffer *buff;  /* buffer for tokens */
-  struct Dyndata *dyd;  /* dynamic structures used by the parser */
-  TString *source;  /* current source name */
-  TString *envn;  /* environment variable name */
+  struct Dyndata *m_dyd;  /* dynamic structures used by the parser */
+  TString *m_source;  /* current source name */
+  TString *m_envn;  /* environment variable name */
   char decpoint;  /* locale decimal point */
   int llex (SemInfo *seminfo);
   inline int next(void) { current = z->getc(); return current; }
@@ -73,7 +73,6 @@ class LexState {
   void read_long_string (SemInfo *seminfo, int sep);
   l_noret lexerror(const char *msg, int token);
   const char *txtToken (int token);
-  void check_condition(lu_byte c,const char *msg) { if (!(c)) syntax_error(msg); }
   int check_next (const char *set);
   void buffreplace (char from, char to);
   void read_numeral (SemInfo *seminfo);
@@ -83,14 +82,23 @@ class LexState {
   int readdecesc (void);
   void read_string (int del, SemInfo *seminfo);
  public:
-  lua_State* L(void) { return m_L; }
-  int lastline(void) { return m_lastline; }
+  void check_condition(lu_byte c,const char *msg) { if (!(c)) syntax_error(msg); }
+  struct FuncState *fs;  /* current function (parser) */
+  inline lua_State* L(void) { return m_L; }
+  inline Token &t(void) { return m_t; }
+  inline Dyndata* dyd(void) { return m_dyd; }
+  inline int lastline(void) { return m_lastline; }
+  inline int linenumber(void) { return m_linenumber; }
+  inline TString *envn(void) { return m_envn; }
+  inline TString *source(void) { return m_source; }
   int look_ahead(void);
   void next_token(void);
   const char *token2str (int token);
   l_noret syntax_error (const char *msg);
   TString *new_string (const char *str, size_t l);
   void set_input (lua_State *L, ZIO *z, TString *source, int firstchar);
+  inline void leave_level(void) { m_L->nCcalls--; }
+  inline void set_data(Mbuffer *buffer, Dyndata *dyd) { buff = buffer; m_dyd = dyd; }
  };
 
 
