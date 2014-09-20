@@ -59,8 +59,10 @@ class LexState {
   struct lua_State *m_L;
   ZIO *z;  /* input stream */
   Mbuffer *buff;  /* buffer for tokens */
+  //not used in lexer
   struct Dyndata *m_dyd;  /* dynamic structures used by the parser */
   TString *m_source;  /* current source name */
+  //not used in lexer
   TString *m_envn;  /* environment variable name */
   char decpoint;  /* locale decimal point */
   int llex (SemInfo *seminfo);
@@ -83,6 +85,7 @@ class LexState {
   void read_string (int del, SemInfo *seminfo);
  public:
   void check_condition(lu_byte c,const char *msg) { if (!(c)) syntax_error(msg); }
+  //used only in new_string
   struct FuncState *fs;  /* current function (parser) */
   inline lua_State* L(void) { return m_L; }
   inline Token &t(void) { return m_t; }
