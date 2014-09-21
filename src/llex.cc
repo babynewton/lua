@@ -162,8 +162,6 @@ void LexState::set_input (lua_State *L, ZIO *zio, TString *source,
   m_linenumber = 1;
   m_lastline = 1;
   m_source = source;
-  m_envn = luaS_new(L, LUA_ENV);  /* create env name */
-  luaS_fix(m_envn);  /* never collect this name */
   buff->resize(m_L, LUA_MINBUFFER);  /* initialize buffer */
 }
 

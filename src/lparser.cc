@@ -52,6 +52,8 @@ typedef struct BlockCnt {
 class lua_Parser {
  private:
   LexState *ls;
+  struct Dyndata *dyd;  /* dynamic structures used by the parser */
+  TString *envn;  /* environment variable name */
   void open_func(FuncState *fs, BlockCnt *bl);
   void statlist (void);
   int testnext (int c);
@@ -100,8 +102,25 @@ class lua_Parser {
   void singlevar (expdesc *var);
   void fieldsel (expdesc *v);
   int funcname (expdesc *v);
+  void new_localvar (TString *name);
+  void new_localvarliteral (const char *name);
+  LocVar *getlocvar (FuncState *fs, int i);
+  void adjustlocalvars (int nvars);
+  void removevars (FuncState *fs, int tolevel);
+  int searchvar (FuncState *fs, TString *n);
+  int singlevaraux (FuncState *fs, TString *n, expdesc *var, int base);
+  void closegoto (int g, Labeldesc *label);
+  int findlabel (int g);
+  void findgotos (Labeldesc *lb);
+  void movegotosout (FuncState *fs, BlockCnt *bl);
+  void enterblock (FuncState *fs, BlockCnt *bl, lu_byte isloop);
+  void breaklabel (void);
+  void leaveblock (FuncState *fs);
  public:
-  lua_Parser(LexState *lexstate):ls(lexstate) {}
+  lua_Parser(LexState *lexstate, Dyndata *dydata):ls(lexstate), dyd(dydata)	{
+    envn = luaS_new(ls->L(), LUA_ENV);  /* create env name */
+    luaS_fix(envn);  /* never collect this name */
+ }
   void mainfunc(FuncState *fs);
 };
 
@@ -227,9 +246,8 @@ static int registerlocalvar (LexState *ls, TString *varname) {
 }
 
 
-static void new_localvar (LexState *ls, TString *name) {
+void lua_Parser::new_localvar (TString *name) {
   FuncState *fs = ls->fs;
-  Dyndata *dyd = ls->dyd();
   int reg = registerlocalvar(ls, name);
   checklimit(fs, dyd->actvar.n + 1 - fs->firstlocal,
                   MAXVARS, "local variables");
@@ -239,22 +257,19 @@ static void new_localvar (LexState *ls, TString *name) {
 }
 
 
-static void new_localvarliteral_ (LexState *ls, const char *name, size_t sz) {
-  new_localvar(ls, ls->new_string(name, sz));
+void lua_Parser::new_localvarliteral (const char *name) {
+  //TODO:sizeof(name) -> strlen(name)
+  new_localvar(ls->new_string(name, (sizeof(name)/sizeof(char))-1));
 }
 
-#define new_localvarliteral(ls,v) \
-	new_localvarliteral_(ls, "" v, (sizeof(v)/sizeof(char))-1)
-
-
-static LocVar *getlocvar (FuncState *fs, int i) {
-  int idx = fs->ls->dyd()->actvar.arr[fs->firstlocal + i].idx;
+LocVar *lua_Parser::getlocvar (FuncState *fs, int i) {
+  int idx = dyd->actvar.arr[fs->firstlocal + i].idx;
   lua_assert(idx < fs->nlocvars);
   return &fs->f->locvars[idx];
 }
 
 
-static void adjustlocalvars (LexState *ls, int nvars) {
+void lua_Parser::adjustlocalvars (int nvars) {
   FuncState *fs = ls->fs;
   fs->nactvar = cast_byte(fs->nactvar + nvars);
   for (; nvars; nvars--) {
@@ -263,8 +278,8 @@ static void adjustlocalvars (LexState *ls, int nvars) {
 }
 
 
-static void removevars (FuncState *fs, int tolevel) {
-  fs->ls->dyd()->actvar.n -= (fs->nactvar - tolevel);
+void lua_Parser::removevars (FuncState *fs, int tolevel) {
+  dyd->actvar.n -= (fs->nactvar - tolevel);
   while (fs->nactvar > tolevel)
     getlocvar(fs, --fs->nactvar)->endpc = fs->pc;
 }
@@ -295,7 +310,7 @@ static int newupvalue (FuncState *fs, TString *name, expdesc *v) {
 }
 
 
-static int searchvar (FuncState *fs, TString *n) {
+int lua_Parser::searchvar (FuncState *fs, TString *n) {
   int i;
   for (i = cast_int(fs->nactvar) - 1; i >= 0; i--) {
     if (luaS_eqstr(n, getlocvar(fs, i)->varname))
@@ -320,7 +335,7 @@ static void markupval (FuncState *fs, int level) {
   Find variable with given name 'n'. If it is an upvalue, add this
   upvalue into all intermediate functions.
 */
-static int singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
+int lua_Parser::singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
   if (fs == NULL)  /* no more levels? */
     return VVOID;  /* default is global */
   else {
@@ -351,7 +366,7 @@ void lua_Parser::singlevar (expdesc *var) {
   FuncState *fs = ls->fs;
   if (singlevaraux(fs, varname, var, 1) == VVOID) {  /* global name? */
     expdesc key;
-    singlevaraux(fs, ls->envn(), var, 1);  /* get environment variable */
+    singlevaraux(fs, envn, var, 1);  /* get environment variable */
     lua_assert(var->k == VLOCAL || var->k == VUPVAL);
     codestring(ls, &key, varname);  /* key is variable name */
     luaK_indexed(fs, var, &key);  /* env[varname] */
@@ -388,10 +403,10 @@ static void enterlevel (LexState *ls) {
 
 
 
-static void closegoto (LexState *ls, int g, Labeldesc *label) {
+void lua_Parser::closegoto (int g, Labeldesc *label) {
   int i;
   FuncState *fs = ls->fs;
-  Labellist *gl = &ls->dyd()->gt;
+  Labellist *gl = &dyd->gt;
   Labeldesc *gt = &gl->arr[g];
   lua_assert(luaS_eqstr(gt->name, label->name));
   if (gt->nactvar < label->nactvar) {
@@ -412,10 +427,9 @@ static void closegoto (LexState *ls, int g, Labeldesc *label) {
 /*
 ** try to close a goto with existing labels; this solves backward jumps
 */
-static int findlabel (LexState *ls, int g) {
+int lua_Parser::findlabel (int g) {
   int i;
   BlockCnt *bl = ls->fs->bl;
-  Dyndata *dyd = ls->dyd();
   Labeldesc *gt = &dyd->gt.arr[g];
   /* check labels in current block for a match */
   for (i = bl->firstlabel; i < dyd->label.n; i++) {
@@ -424,7 +438,7 @@ static int findlabel (LexState *ls, int g) {
       if (gt->nactvar > lb->nactvar &&
           (bl->upval || dyd->label.n > bl->firstlabel))
         luaK_patchclose(ls->fs, gt->pc, lb->nactvar);
-      closegoto(ls, g, lb);  /* close it */
+      closegoto(g, lb);  /* close it */
       return 1;
     }
   }
@@ -450,12 +464,12 @@ static int newlabelentry (LexState *ls, Labellist *l, TString *name,
 ** check whether new label 'lb' matches any pending gotos in current
 ** block; solves forward jumps
 */
-static void findgotos (LexState *ls, Labeldesc *lb) {
-  Labellist *gl = &ls->dyd()->gt;
+void lua_Parser::findgotos (Labeldesc *lb) {
+  Labellist *gl = &dyd->gt;
   int i = ls->fs->bl->firstgoto;
   while (i < gl->n) {
     if (luaS_eqstr(gl->arr[i].name, lb->name))
-      closegoto(ls, i, lb);
+      closegoto(i, lb);
     else
       i++;
   }
@@ -468,9 +482,9 @@ static void findgotos (LexState *ls, Labeldesc *lb) {
 ** the goto exits the scope of any variable (which can be the
 ** upvalue), close those variables being exited.
 */
-static void movegotosout (FuncState *fs, BlockCnt *bl) {
+void lua_Parser::movegotosout (FuncState *fs, BlockCnt *bl) {
   int i = bl->firstgoto;
-  Labellist *gl = &fs->ls->dyd()->gt;
+  Labellist *gl = &dyd->gt;
   /* correct pending gotos to current block and try to close it
      with visible labels */
   while (i < gl->n) {
@@ -480,17 +494,17 @@ static void movegotosout (FuncState *fs, BlockCnt *bl) {
         luaK_patchclose(fs, gt->pc, bl->nactvar);
       gt->nactvar = bl->nactvar;
     }
-    if (!findlabel(fs->ls, i))
+    if (!findlabel(i))
       i++;  /* move to next one */
   }
 }
 
 
-static void enterblock (FuncState *fs, BlockCnt *bl, lu_byte isloop) {
+void lua_Parser::enterblock (FuncState *fs, BlockCnt *bl, lu_byte isloop) {
   bl->isloop = isloop;
   bl->nactvar = fs->nactvar;
-  bl->firstlabel = fs->ls->dyd()->label.n;
-  bl->firstgoto = fs->ls->dyd()->gt.n;
+  bl->firstlabel = dyd->label.n;
+  bl->firstgoto = dyd->gt.n;
   bl->upval = 0;
   bl->previous = fs->bl;
   fs->bl = bl;
@@ -501,10 +515,10 @@ static void enterblock (FuncState *fs, BlockCnt *bl, lu_byte isloop) {
 /*
 ** create a label named "break" to resolve break statements
 */
-static void breaklabel (LexState *ls) {
+void lua_Parser::breaklabel (void) {
   TString *n = luaS_new(ls->L(), "break");
-  int l = newlabelentry(ls, &ls->dyd()->label, n, 0, ls->fs->pc);
-  findgotos(ls, &ls->dyd()->label.arr[l]);
+  int l = newlabelentry(ls, &dyd->label, n, 0, ls->fs->pc);
+  findgotos(&dyd->label.arr[l]);
 }
 
 /*
@@ -520,7 +534,7 @@ static l_noret undefgoto (LexState *ls, Labeldesc *gt) {
 }
 
 
-static void leaveblock (FuncState *fs) {
+void lua_Parser::leaveblock (FuncState *fs) {
   BlockCnt *bl = fs->bl;
   LexState *ls = fs->ls;
   if (bl->previous && bl->upval) {
@@ -530,16 +544,16 @@ static void leaveblock (FuncState *fs) {
     luaK_patchtohere(fs, j);
   }
   if (bl->isloop)
-    breaklabel(ls);  /* close pending breaks */
+    breaklabel();  /* close pending breaks */
   fs->bl = bl->previous;
   removevars(fs, bl->nactvar);
   lua_assert(bl->nactvar == fs->nactvar);
   fs->freereg = fs->nactvar;  /* free registers */
-  ls->dyd()->label.n = bl->firstlabel;  /* remove local labels */
+  dyd->label.n = bl->firstlabel;  /* remove local labels */
   if (bl->previous)  /* inner block? */
     movegotosout(fs, bl);  /* update pending gotos to outer block */
-  else if (bl->firstgoto < ls->dyd()->gt.n)  /* pending gotos in outer block? */
-    undefgoto(ls, &ls->dyd()->gt.arr[bl->firstgoto]);  /* error */
+  else if (bl->firstgoto < dyd->gt.n)  /* pending gotos in outer block? */
+    undefgoto(ls, &dyd->gt.arr[bl->firstgoto]);  /* error */
 }
 
 
@@ -590,7 +604,7 @@ void lua_Parser::open_func (FuncState *fs, BlockCnt *bl) {
   fs->nups = 0;
   fs->nlocvars = 0;
   fs->nactvar = 0;
-  fs->firstlocal = ls->dyd()->actvar.n;
+  fs->firstlocal = dyd->actvar.n;
   fs->bl = NULL;
   f = fs->f;
   f->source = ls->source();
@@ -817,7 +831,7 @@ void lua_Parser::parlist (void) {
     do {
       switch (ls->t().token) {
         case TK_NAME: {  /* param -> NAME */
-          new_localvar(ls, str_checkname());
+          new_localvar(str_checkname());
           nparams++;
           break;
         }
@@ -830,7 +844,7 @@ void lua_Parser::parlist (void) {
       }
     } while (!f->is_vararg && testnext(','));
   }
-  adjustlocalvars(ls, nparams);
+  adjustlocalvars(nparams);
   f->numparams = cast_byte(fs->nactvar);
   luaK_reserveregs(fs, fs->nactvar);  /* reserve register for parameters */
 }
@@ -845,8 +859,8 @@ void lua_Parser::body (expdesc *e, int ismethod, int line) {
   open_func(&new_fs, &bl);
   checknext('(');
   if (ismethod) {
-    new_localvarliteral(ls, "self");  /* create 'self' parameter */
-    adjustlocalvars(ls, 1);
+    new_localvarliteral("self");  /* create 'self' parameter */
+    adjustlocalvars(1);
   }
   parlist();
   checknext(')');
@@ -1237,8 +1251,8 @@ void lua_Parser::gotostat (int pc) {
     ls->next_token();  /* skip break */
     label = luaS_new(ls->L(), "break");
   }
-  g = newlabelentry(ls, &ls->dyd()->gt, label, line, pc);
-  findlabel(ls, g);  /* close it if label already defined */
+  g = newlabelentry(ls, &dyd->gt, label, line, pc);
+  findlabel(g);  /* close it if label already defined */
 }
 
 
@@ -1266,7 +1280,7 @@ void lua_Parser::skipnoopstat (void) {
 void lua_Parser::labelstat (TString *label, int line) {
   /* label -> '::' NAME '::' */
   FuncState *fs = ls->fs;
-  Labellist *ll = &ls->dyd()->label;
+  Labellist *ll = &dyd->label;
   int l;  /* index of new label being created */
   checkrepeated(fs, ll, label);  /* check for repeated labels */
   checknext(TK_DBCOLON);  /* skip double colon */
@@ -1277,7 +1291,7 @@ void lua_Parser::labelstat (TString *label, int line) {
     /* assume that locals are already out of scope */
     ll->arr[l].nactvar = fs->bl->nactvar;
   }
-  findgotos(ls, &ll->arr[l]);
+  findgotos(&ll->arr[l]);
 }
 
 
@@ -1336,11 +1350,11 @@ void lua_Parser::forbody (int base, int line, int nvars, int isnum) {
   BlockCnt bl;
   FuncState *fs = ls->fs;
   int prep, endfor;
-  adjustlocalvars(ls, 3);  /* control variables */
+  adjustlocalvars(3);  /* control variables */
   checknext(TK_DO);
   prep = isnum ? luaK_codeAsBx(fs, OP_FORPREP, base, NO_JUMP) : luaK_jump(fs);
   enterblock(fs, &bl, 0);  /* scope for declared variables */
-  adjustlocalvars(ls, nvars);
+  adjustlocalvars(nvars);
   luaK_reserveregs(fs, nvars);
   block();
   leaveblock(fs);  /* end of scope for declared variables */
@@ -1361,10 +1375,10 @@ void lua_Parser::fornum (TString *varname, int line) {
   /* fornum -> NAME = exp1,exp1[,exp1] forbody */
   FuncState *fs = ls->fs;
   int base = fs->freereg;
-  new_localvarliteral(ls, "(for index)");
-  new_localvarliteral(ls, "(for limit)");
-  new_localvarliteral(ls, "(for step)");
-  new_localvar(ls, varname);
+  new_localvarliteral("(for index)");
+  new_localvarliteral("(for limit)");
+  new_localvarliteral("(for step)");
+  new_localvar(varname);
   checknext('=');
   exp1();  /* initial value */
   checknext(',');
@@ -1387,13 +1401,13 @@ void lua_Parser::forlist (TString *indexname) {
   int line;
   int base = fs->freereg;
   /* create control variables */
-  new_localvarliteral(ls, "(for generator)");
-  new_localvarliteral(ls, "(for state)");
-  new_localvarliteral(ls, "(for control)");
+  new_localvarliteral("(for generator)");
+  new_localvarliteral("(for state)");
+  new_localvarliteral("(for control)");
   /* create declared variables */
-  new_localvar(ls, indexname);
+  new_localvar(indexname);
   while (testnext(',')) {
-    new_localvar(ls, str_checkname());
+    new_localvar(str_checkname());
     nvars++;
   }
   checknext(TK_IN);
@@ -1474,8 +1488,8 @@ void lua_Parser::ifstat (int line) {
 void lua_Parser::localfunc (void) {
   expdesc b;
   FuncState *fs = ls->fs;
-  new_localvar(ls, str_checkname());  /* new local variable */
-  adjustlocalvars(ls, 1);  /* enter its scope */
+  new_localvar(str_checkname());  /* new local variable */
+  adjustlocalvars(1);  /* enter its scope */
   body(&b, 0, ls->linenumber());  /* function created in next register */
   /* debug information will only see the variable after this point! */
   getlocvar(fs, b.u.info)->startpc = fs->pc;
@@ -1488,7 +1502,7 @@ void lua_Parser::localstat (void) {
   int nexps;
   expdesc e;
   do {
-    new_localvar(ls, str_checkname());
+    new_localvar(str_checkname());
     nvars++;
   } while (testnext(','));
   if (testnext('='))
@@ -1498,7 +1512,7 @@ void lua_Parser::localstat (void) {
     nexps = 0;
   }
   adjust_assign(ls, nvars, nexps, &e);
-  adjustlocalvars(ls, nvars);
+  adjustlocalvars(nvars);
 }
 
 
@@ -1658,7 +1672,7 @@ void lua_Parser::mainfunc (FuncState *fs) {
   open_func(fs, &bl);
   fs->f->is_vararg = 1;  /* main function is always vararg */
   init_exp(&v, VLOCAL, 0);  /* create and... */
-  newupvalue(fs, ls->envn(), &v);  /* ...set environment upvalue */
+  newupvalue(fs, envn, &v);  /* ...set environment upvalue */
   ls->next_token();  /* read first token */
   statlist();  /* parse main body */
   check(TK_EOS);
@@ -1676,10 +1690,10 @@ Closure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
   incr_top(L);
   funcstate.f = cl->p = luaF_newproto(L);
   funcstate.f->source = luaS_new(L, name);  /* create and anchor TString */
-  lexstate.set_data(buff, dyd);
+  lexstate.set_data(buff);
   dyd->actvar.n = dyd->gt.n = dyd->label.n = 0;
   lexstate.set_input(L, z, funcstate.f->source, firstchar);
-  lua_Parser parser(&lexstate);
+  lua_Parser parser(&lexstate, dyd);
   parser.mainfunc(&funcstate);
   lua_assert(!funcstate.prev && funcstate.nups == 1 && !lexstate.fs);
   /* all scopes should be correctly finished */

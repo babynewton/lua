@@ -59,11 +59,7 @@ class LexState {
   struct lua_State *m_L;
   ZIO *z;  /* input stream */
   Mbuffer *buff;  /* buffer for tokens */
-  //not used in lexer
-  struct Dyndata *m_dyd;  /* dynamic structures used by the parser */
   TString *m_source;  /* current source name */
-  //not used in lexer
-  TString *m_envn;  /* environment variable name */
   char decpoint;  /* locale decimal point */
   int llex (SemInfo *seminfo);
   inline int next(void) { current = z->getc(); return current; }
@@ -89,10 +85,8 @@ class LexState {
   struct FuncState *fs;  /* current function (parser) */
   inline lua_State* L(void) { return m_L; }
   inline Token &t(void) { return m_t; }
-  inline Dyndata* dyd(void) { return m_dyd; }
   inline int lastline(void) { return m_lastline; }
   inline int linenumber(void) { return m_linenumber; }
-  inline TString *envn(void) { return m_envn; }
   inline TString *source(void) { return m_source; }
   int look_ahead(void);
   void next_token(void);
@@ -101,7 +95,7 @@ class LexState {
   TString *new_string (const char *str, size_t l);
   void set_input (lua_State *L, ZIO *z, TString *source, int firstchar);
   inline void leave_level(void) { m_L->nCcalls--; }
-  inline void set_data(Mbuffer *buffer, Dyndata *dyd) { buff = buffer; m_dyd = dyd; }
+  inline void set_data(Mbuffer *buffer) { buff = buffer; }
  };
 
 
