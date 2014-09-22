@@ -1,14 +1,15 @@
 # change this variable to point to the directory with Lua headers
 # of the version being tested
-LUA_DIR = ../..
+LUA_DIR = ../../src
 
-CC = gcc
+CC = g++
 
 # compilation should generate Dynamic-Link Libraries
 CFLAGS = -Wall -O2 -I$(LUA_DIR) -ansi -fpic -shared
 
 # libraries used by the tests
-all: lib1.so lib11.so lib2.so lib21.so v-lib2.so
+LIBS=lib1.so lib11.so lib2.so lib21.so v-lib2.so
+all: $(LIBS)
 
 lib1.so: lib1.c
 	$(CC) $(CFLAGS) -o lib1.so lib1.c
@@ -24,3 +25,6 @@ lib21.so: lib21.c
 
 v-lib2.so: lib2.so
 	mv lib2.so ./v-lib2.so
+
+clean:
+	rm -f $(LIBS)
