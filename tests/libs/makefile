@@ -2,7 +2,7 @@
 # of the version being tested
 LUA_DIR = ../../src
 
-CC = g++
+CC = gcc
 
 # compilation should generate Dynamic-Link Libraries
 CFLAGS = -Wall -O2 -I$(LUA_DIR) -ansi -fpic -shared
