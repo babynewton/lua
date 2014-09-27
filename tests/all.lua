@@ -1,4 +1,4 @@
-#!../src/lua
+#!../lua/src/lua
 
 local version = "Lua 5.2"
 if _VERSION ~= version then

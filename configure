@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+
+function guess_platform () {
+	OS_NAME=`uname -s`
+	case $OS_NAME in
+		Linux)
+			PLATFORM=linux
+			;;
+		*)
+			PLATFORM=posix
+			;;
+	esac
+}
+
+guess_platform
+for ARG in $@
+do
+	case $ARG in
+		*)
+			PLATFORM=$ARG
+			;;
+	esac
+done
+
+sed "s#@__platform__@#$PLATFORM#g" < Makefile.in > Makefile

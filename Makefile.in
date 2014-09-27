@@ -1,0 +1,24 @@
+PLATFORM=@__platform__@
+LUA=lua
+TESTS_LIBS=tests/libs
+
+all: $(LUA) $(TESTS_LIBS)
+
+$(LUA):
+	$(MAKE) -C $@ $(PLATFORM)
+
+$(TESTS_LIBS):
+	$(MAKE) -C $@
+
+run:
+	$(LUA)/src/lua
+
+test:
+	cd tests && ./all.lua
+
+clean:
+	$(MAKE) -C $(LUA) $@
+	$(MAKE) -C $(TESTS_LIBS) $@
+	rm Makefile
+
+.PHONY: lua tests
